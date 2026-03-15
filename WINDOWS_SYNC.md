@@ -46,12 +46,9 @@ cat ~/.ssh/id_ed25519.pub
 # Папка — куда клонировать (подставь свой путь)
 cd C:\Users\ТВОЙ_ПОЛЬЗОВАТЕЛЬ
 
-# Клон
+# Клон (все проекты в одном репо — submodules не нужны)
 git clone https://github.com/UntLab/codex-backups.git progects
 cd progects
-
-# Инициализировать подмодули (cardsaas, pharmatech)
-git submodule update --init --recursive
 ```
 
 ---
@@ -68,8 +65,9 @@ git submodule update --init --recursive
 
 ```
 C:\Users\ТВОЙ_ПОЛЬЗОВАТЕЛЬ\progects\
-├── cardsaas\           # подмодуль
-├── pharmatech\         # подмодуль
+├── cardsaas\
+├── pharmatech\
+├── pharmatech-mobile\
 ├── home-assistant-dashboard\
 ├── n8n-prompt-manager\
 ├── config\
@@ -90,7 +88,6 @@ C:\Users\ТВОЙ_ПОЛЬЗОВАТЕЛЬ\progects\
 ```bash
 cd C:\Users\ТВОЙ_ПОЛЬЗОВАТЕЛЬ\progects
 git pull origin main
-git submodule update --init --recursive
 ```
 
 ### Отправить изменения на GitHub (push)
@@ -190,18 +187,11 @@ git push origin main
 - HTTPS: GitHub → Settings → Developer settings → Personal access tokens → Generate new token
 - SSH: сгенерируй новый ключ и добавь его в GitHub
 
-**Подмодули не обновляются:**
-
-```bash
-git submodule update --init --recursive
-```
-
 ---
 
 ## Кратко
 
 1. Установи Git, настрой имя/email и доступ к GitHub.
 2. Сделай `git clone` в `progects`.
-3. Выполни `git submodule update --init --recursive`.
-4. Работай в `progects`, делай `git add`, `commit`, `push` после изменений.
-5. На другом ПК — `git pull` и снова `git submodule update --init --recursive`.
+3. Работай в `progects`, делай `git add`, `commit`, `push` после изменений.
+4. На другом ПК — `git pull`.

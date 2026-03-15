@@ -57,9 +57,18 @@ if [[ -d "${HOME_DIR}/.cursor/rules" ]]; then
   echo "  ✓ config/cursor-rules"
 fi
 
-# Update submodules to latest committed state
-if [[ -f "${ROOT}/.gitmodules" ]]; then
-  (cd "${ROOT}" && git submodule update --init --recursive 2>/dev/null || true)
-fi
+# Cursor fullstack projects (cardsaas, pharmatech, pharmatech-mobile)
+CURSOR_FULLSTACK="${HOME_DIR}/Cursor/projects/fullstack"
+for proj in cardsaas pharmatech pharmatech-mobile; do
+  if [[ -d "${CURSOR_FULLSTACK}/${proj}" ]]; then
+    mkdir -p "${ROOT}/${proj}"
+    rsync -a --delete \
+      --exclude='.git' --exclude='.DS_Store' \
+      --exclude='node_modules' --exclude='.next' --exclude='out' \
+      --exclude='.playwright-cli' \
+      "${CURSOR_FULLSTACK}/${proj}/" "${ROOT}/${proj}/"
+    echo "  ✓ ${proj}"
+  fi
+done
 
 echo "Sources synced."

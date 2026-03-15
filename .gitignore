@@ -3,6 +3,12 @@
 Thumbs.db
 *.log
 
+# Dependencies and build output (cardsaas, pharmatech)
+node_modules/
+.next/
+out/
+.vercel/
+
 # n8n-prompt-manager: exclude large binaries (kept in sync-sources)
 n8n-prompt-manager/*.zip
 n8n-prompt-manager/*.app

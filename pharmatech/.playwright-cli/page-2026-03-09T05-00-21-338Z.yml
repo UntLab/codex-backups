@@ -1,0 +1,77 @@
+- generic [ref=e2]:
+  - button "Düzəliş girişi istəyin" [ref=e4] [cursor=pointer]:
+    - generic [ref=e6]:
+      - img [ref=e8]
+      - generic [ref=e12]: Düzəliş girişi istəyin
+  - generic [ref=e14]:
+    - generic [ref=e17]:
+      - generic [ref=e19]:
+        - generic [ref=e21]:
+          - heading "Yük Çatdırılması üzrə Rəy Forması" [level=1] [ref=e23]:
+            - strong [ref=e24]
+            - text: Yük Çatdırılması üzrə Rəy Forması
+          - generic [ref=e25]:
+            - text: Zəhmət olmasa, yükünüzün çatdırılması ilə bağlı məmnuniyyət səviyyənizi bildirin.
+            - text: Sizin fikriniz bizim üçün çox önəmlidir! 🌟
+        - generic [ref=e27]:
+          - generic [ref=e29]:
+            - text: Gedişatı yadda saxlamaq üçün
+            - link "Google'a daxil olun" [ref=e30] [cursor=pointer]:
+              - /url: https://accounts.google.com/Login?continue=https%3A%2F%2Fdocs.google.com%2Fforms%2Fd%2Fe%2F1FAIpQLSfakf9dxzxQVItuU50LCe4EW8Uzn9DEKpEgywqre4STNxCBiA%2Fviewform%3Ffbzx%3D5362666391285528091
+            - text: .
+            - button "Ətraflı məlumat" [ref=e31] [cursor=pointer]
+          - generic [ref=e33]: "* Cavablandırmalı olduğunuz sualı göstərir"
+      - list [ref=e34]:
+        - listitem [ref=e35]:
+          - generic [ref=e37]:
+            - heading "BK nömrəsi (avtomatik doldurulur)" [level=3] [ref=e40]:
+              - generic [ref=e41]: BK nömrəsi (avtomatik doldurulur)
+            - generic [ref=e46]:
+              - textbox "BK nömrəsi (avtomatik doldurulur)" [ref=e47]
+              - generic: Cavabınız
+        - listitem [ref=e49]:
+          - generic [ref=e51]:
+            - heading "Çatdırılmadan məmnun qaldınızmı? Tələb olunan sual" [level=3] [ref=e54]:
+              - generic [ref=e55]: Çatdırılmadan məmnun qaldınızmı?
+              - generic "Tələb olunan sual" [ref=e56]: "*"
+            - radiogroup "Çatdırılmadan məmnun qaldınızmı? Tələb olunan sual" [ref=e59]:
+              - generic [ref=e60]:
+                - generic [ref=e63]:
+                  - radio "😀 Çox Razıyam" [ref=e65] [cursor=pointer]
+                  - generic [ref=e70]: 😀 Çox Razıyam
+                - generic [ref=e73]:
+                  - radio "😞 Razı Deyiləm" [ref=e75] [cursor=pointer]
+                  - generic [ref=e80]: 😞 Razı Deyiləm
+        - listitem [ref=e81]:
+          - generic [ref=e83]:
+            - heading "Əlavə rəy və ya şərh (istəyə görə)" [level=3] [ref=e86]:
+              - generic [ref=e87]: Əlavə rəy və ya şərh (istəyə görə)
+            - generic [ref=e90]:
+              - generic: Cavabınız
+              - textbox "Əlavə rəy və ya şərh (istəyə görə)" [ref=e92]
+      - generic [ref=e94]:
+        - generic [ref=e95]:
+          - button "Submit" [ref=e97] [cursor=pointer]:
+            - generic [ref=e100]: Təqdim edin
+          - button "Formanı təmizləyin" [ref=e102] [cursor=pointer]:
+            - generic [ref=e105]: Formanı təmizləyin
+        - generic [ref=e106]: Google Forma vasitəsilə heç vaxt parol təqdim etməyin
+    - generic [ref=e107]:
+      - generic [ref=e108]:
+        - text: Bu məzmun nə Google tərəfindən yaradılıb nə də ki, təklif edilib. -
+        - link "Xidmət Şərtləri" [ref=e109] [cursor=pointer]:
+          - /url: https://policies.google.com/terms
+        - text: "-"
+        - link "Məxfilik Siyasəti" [ref=e110] [cursor=pointer]:
+          - /url: https://policies.google.com/privacy
+        - paragraph [ref=e111]:
+          - text: Bu forma şübhəli görünür?
+          - link "Hesabat" [ref=e112] [cursor=pointer]:
+            - /url: https://drive.google.com/abuse?id=AKkXjowhRItB3tcXhtbafXMMqt7KE4bD0w1fGs6A8Rv-p9FwGRAJnM037Ih-ME1h_GPy2Lrs4s_aEtYYiho-h1s:0&docurl=https://docs.google.com/forms/d/1EHHmAjAWF6eIbuNPHLGoLGS68qnjbe9gTPSB-Ba8ndw/viewform?usp%3Ddrivesdk%26edit_requested%3Dtrue
+      - link "Google Formaları" [ref=e114] [cursor=pointer]:
+        - /url: //www.google.com/forms/about/?utm_source=product&utm_medium=forms_logo&utm_campaign=forms
+        - img "Google" [ref=e115]
+        - text: Formaları
+  - generic [ref=e119]:
+    - button "yardım və rəy" [ref=e120] [cursor=pointer]
+    - tooltip [ref=e123]: Yardım və rəy

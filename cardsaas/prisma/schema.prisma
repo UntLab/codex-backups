@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  image         String?
+  role          String    @default("user")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  cards         Card[]
+  subscriptions Subscription[]
+  templates     CardTemplate[]
+  leads         Lead[]
+
+  teamId        String?
+  team          Team?     @relation("TeamMembers", fields: [teamId], references: [id])
+  ownedTeams    Team[]    @relation("TeamOwner")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner   User   @relation("TeamOwner", fields: [ownerId], references: [id])
+  members User[] @relation("TeamMembers")
+
+  @@index([ownerId])
+}
+
+model Card {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  userId    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fullName  String
+  jobTitle  String?
+  company   String?
+  bio       String?
+  phone     String?
+  email     String?
+  website   String?
+  avatarUrl String?
+
+  github    String?
+  telegram  String?
+  linkedin  String?
+  facebook  String?
+  instagram String?
+  whatsapp  String?
+  tiktok    String?
+  youtube   String?
+  twitter   String?
+
+  theme       String   @default("cyberpunk")
+  accentColor String   @default("#00ffcc")
+  bgColor     String   @default("#030305")
+  fontFamily  String   @default("Inter")
+  borderRadius String  @default("16")
+  cardStyle   String?
+
+  customDomain String?  @unique
+  domainVerified Boolean @default(false)
+
+  tags      String[] @default([])
+
+  webhookUrl String?
+
+  trialEndsAt DateTime?
+
+  views        CardView[]
+  subscription Subscription?
+  leads        Lead[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([slug])
+  @@index([customDomain])
+}
+
+model CardView {
+  id        String   @id @default(cuid())
+  cardId    String
+  ip        String?
+  userAgent String?
+  referer   String?
+  country   String?
+  city      String?
+  device    String?
+  viewedAt  DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId])
+  @@index([viewedAt])
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  cardId    String
+  userId    String
+  name      String?
+  phone     String?
+  email     String?
+  telegram  String?
+  whatsapp  String?
+  linkedin  String?
+  instagram String?
+  facebook  String?
+  notes     String?
+  status    String   @default("new")
+  source    String   @default("card_form")
+  createdAt DateTime @default(now())
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([cardId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CardTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  userId      String?
+  isPublic    Boolean  @default(false)
+  isSystem    Boolean  @default(false)
+  theme       String   @default("cyberpunk")
+  accentColor String   @default("#00ffcc")
+  bgColor     String   @default("#030305")
+  fontFamily  String   @default("Inter")
+  borderRadius String  @default("16")
+  cardStyle   String?
+  preview     String?
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([isPublic])
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  cardId               String   @unique
+  userId               String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  stripePriceId        String?
+  status               String   @default("inactive")
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@index([userId])
+}
