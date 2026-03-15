@@ -17,3 +17,8 @@ n8n-prompt-manager/**/*.app
 n8n-prompt-manager/**/__pycache__
 n8n-prompt-manager/app.log
 n8n-prompt-manager/windows-package
+
+# pharmatech: large archives and build artifacts
+pharmatech/*.zip
+pharmatech/.playwright-cli/
+pharmatech/pharmatech-upload/
