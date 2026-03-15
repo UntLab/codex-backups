@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-BACKUP_REPO_URL="${CODEX_BACKUPS_URL:-https://github.com/UntLab/codex-backups.git}"
+BACKUP_REPO_URL="${CODEX_BACKUPS_URL:-https://github.com/UntLab/codex.git}"
 BACKUP_BRANCH="${CODEX_BACKUPS_BRANCH:-main}"
 
 origin_url="$(git -C "$REPO_ROOT" config --get remote.origin.url || true)"
