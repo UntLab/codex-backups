@@ -1,0 +1,398 @@
+from datetime import date, datetime, time, timezone
+from typing import Any, Dict, Optional
+
+from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+import n8n_client
+import supabase_client
+from models import (
+    AdminSetPasswordRequest,
+    AdminUpdateBlockRequest,
+    AdminUpdateSlotRequest,
+    AdminUpdateUserRoleRequest,
+    ChangeOwnPasswordRequest,
+    CreateUserRequest,
+    LoginRequest,
+    NotificationPreviewRequest,
+    NotificationSettingsUpdateRequest,
+    RestowRequest,
+    StackInRequest,
+    StackOutRequest,
+)
+from validators import validate_position
+
+app = FastAPI(title="BitVantage Yard API", version="1.0")
+security = HTTPBearer(auto_error=False)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:3000",
+        "http://localhost:3000",
+        "https://bitvantage.online",
+        "https://www.bitvantage.online",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def model_to_dict(model: Any) -> Dict[str, Any]:
+    if hasattr(model, "model_dump"):
+        return model.model_dump()
+    return model.dict()
+
+
+def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Dict[str, Any]:
+    if not credentials:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required.")
+    user = supabase_client.get_user_by_token(credentials.credentials)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired or invalid token.")
+    return user
+
+
+def require_permission(permission: str):
+    def dependency(current_user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+        if permission not in current_user.get("permissions", []):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Permission '{permission}' is required for this action.")
+        return current_user
+    return dependency
+
+
+def parse_snapshot_date(value: Optional[str]) -> str:
+    target_date = date.today() if not value else datetime.strptime(value, "%Y-%m-%d").date()
+    snapshot_at = datetime.combine(target_date, time.max, tzinfo=timezone.utc).replace(microsecond=0)
+    return snapshot_at.isoformat()
+
+
+def get_slot_or_404(block: str, bay: str, row: int) -> Dict[str, Any]:
+    normalized_bay = str(int(bay)).zfill(2)
+    slot = supabase_client.get_slot(block, normalized_bay, row)
+    if not slot:
+        raise HTTPException(status_code=404, detail=f"Slot {block}-{normalized_bay}-{row} not found in slot directory.")
+    return slot
+
+
+def ensure_position_available(position_code: str, exclude_container_id: Optional[str] = None) -> None:
+    occupant = supabase_client.find_inventory_by_position(position_code, exclude_container_id=exclude_container_id)
+    if occupant:
+        raise HTTPException(status_code=409, detail=f"Position {position_code} is already occupied by container {occupant['container_id']}.")
+
+
+def ensure_slot_eligible(slot: Dict[str, Any], container_type: str, tier: int) -> None:
+    if not slot.get("enabled", True):
+        raise HTTPException(status_code=400, detail=f"Slot {slot['slot_code']} is blocked in the slot directory.")
+    if container_type not in slot.get("allowed_container_types", []):
+        raise HTTPException(status_code=400, detail=f"Slot {slot['slot_code']} does not allow container type {container_type}.")
+    if tier > int(slot.get("max_tiers", 4)):
+        raise HTTPException(status_code=400, detail=f"Slot {slot['slot_code']} supports tiers only up to {slot['max_tiers']}.")
+
+
+def build_log_entry(
+    *,
+    container_id: str,
+    operation_type: str,
+    performed_at: str,
+    old_position_code: Optional[str],
+    new_position_code: Optional[str],
+    container_snapshot: Dict[str, Any],
+    current_user: Dict[str, Any],
+) -> Dict[str, Any]:
+    return {
+        "container_id": container_id,
+        "operation_type": operation_type,
+        "old_position_code": old_position_code,
+        "new_position_code": new_position_code,
+        "performed_at": performed_at,
+        "operator_username": current_user["username"],
+        "operator_full_name": current_user["full_name"],
+        "operator_role": current_user["role"],
+        "container_snapshot": container_snapshot,
+    }
+
+
+def build_notification_payload(
+    *,
+    request_data: Dict[str, Any],
+    operation_type: str,
+    performed_at: str,
+    old_position_code: Optional[str],
+    new_position_code: Optional[str],
+    container_snapshot: Dict[str, Any],
+    current_user: Dict[str, Any],
+) -> Dict[str, Any]:
+    targets = supabase_client.get_notification_targets(operation_type, current_user, container_snapshot)
+    payload = dict(request_data)
+    payload.update(
+        {
+            "event_id": f"{operation_type.lower()}-{container_snapshot['container_id']}-{performed_at}",
+            "event_type": "terminal.container.moved",
+            "operation_type": operation_type,
+            "performed_at": performed_at,
+            "old_position_code": old_position_code,
+            "new_position_code": new_position_code,
+            "container_snapshot": container_snapshot,
+            "operator": {
+                "username": current_user["username"],
+                "full_name": current_user["full_name"],
+                "role": current_user["role"],
+            },
+            "notification_targets": targets,
+        }
+    )
+    return payload
+
+
+def dispatch_movement_notification(payload: Dict[str, Any]) -> Dict[str, Any]:
+    success, response_text, status_code = n8n_client.send_movement_event(payload)
+    result = {
+        "event_id": payload["event_id"],
+        "operation_type": payload["operation_type"],
+        "container_id": payload["container_snapshot"]["container_id"],
+        "targets": payload["notification_targets"],
+        "success": success,
+        "response_text": response_text,
+        "status_code": status_code,
+        "created_at": supabase_client.utc_now_iso(),
+    }
+    supabase_client.insert_notification_log(result)
+    return result
+
+
+@app.post("/api/auth/login")
+async def login(request: LoginRequest):
+    user = supabase_client.authenticate_user(request.username.strip(), request.password)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password.")
+    token, session_user = supabase_client.create_session(request.username.strip())
+    return {"access_token": token, "token_type": "bearer", "user": session_user}
+
+
+@app.post("/api/auth/logout")
+async def logout(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+    if credentials:
+        supabase_client.delete_session(credentials.credentials)
+    return {"status": "success"}
+
+
+@app.get("/api/users/me")
+async def get_me(current_user: Dict[str, Any] = Depends(get_current_user)):
+    return current_user
+
+
+@app.patch("/api/users/me/notifications")
+async def update_my_notifications(request: NotificationSettingsUpdateRequest, current_user: Dict[str, Any] = Depends(get_current_user)):
+    updated = supabase_client.update_notification_settings(current_user["username"], model_to_dict(request))
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return updated
+
+
+@app.patch("/api/users/me/password")
+async def change_my_password(request: ChangeOwnPasswordRequest, current_user: Dict[str, Any] = Depends(get_current_user)):
+    try:
+        updated = supabase_client.change_own_password(current_user["username"], request.current_password, request.new_password)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"status": "success"}
+
+
+@app.get("/api/admin/users")
+async def admin_list_users(current_user: Dict[str, Any] = Depends(require_permission("manage_users"))):
+    return supabase_client.list_users()
+
+
+@app.post("/api/admin/users")
+async def admin_create_user(request: CreateUserRequest, current_user: Dict[str, Any] = Depends(require_permission("manage_users"))):
+    try:
+        return supabase_client.create_user_record(model_to_dict(request))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.patch("/api/admin/users/{username}/role")
+async def admin_update_user_role(username: str, request: AdminUpdateUserRoleRequest, current_user: Dict[str, Any] = Depends(require_permission("manage_users"))):
+    try:
+        updated = supabase_client.update_user_role(username, request.role)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return updated
+
+
+@app.patch("/api/admin/users/{username}/password")
+async def admin_update_user_password(username: str, request: AdminSetPasswordRequest, current_user: Dict[str, Any] = Depends(require_permission("manage_users"))):
+    updated = supabase_client.admin_set_password(username, request.new_password)
+    if not updated:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"status": "success"}
+
+
+@app.get("/api/yard/layout")
+async def get_yard_layout(current_user: Dict[str, Any] = Depends(require_permission("view_inventory"))):
+    return supabase_client.get_terminal_layout()
+
+
+@app.patch("/api/admin/layout/{block}")
+async def admin_update_terminal_block(block: str, request: AdminUpdateBlockRequest, current_user: Dict[str, Any] = Depends(require_permission("manage_layout"))):
+    if request.bay_count < 1 or request.bay_count > 99:
+        raise HTTPException(status_code=400, detail="Bay count must be between 1 and 99.")
+    if request.row_count < 1 or request.row_count > 99:
+        raise HTTPException(status_code=400, detail="Row count must be between 1 and 99.")
+    if request.tier_count < 1 or request.tier_count > 4:
+        raise HTTPException(status_code=400, detail="Tier count must be between 1 and 4.")
+    updated = supabase_client.update_terminal_block(block, model_to_dict(request))
+    if not updated:
+        raise HTTPException(status_code=404, detail="Block not found.")
+    return updated
+
+
+@app.get("/api/yard/slots")
+async def get_yard_slots(block: Optional[str] = Query(default=None), current_user: Dict[str, Any] = Depends(require_permission("view_inventory"))):
+    return supabase_client.get_slots_for_block(block) if block else supabase_client.get_all_slots()
+
+
+@app.patch("/api/admin/slots/{block}/{bay}/{row}")
+async def admin_update_slot(block: str, bay: str, row: int, request: AdminUpdateSlotRequest, current_user: Dict[str, Any] = Depends(require_permission("manage_layout"))):
+    normalized_bay = str(int(bay)).zfill(2)
+    if request.max_tiers < 1 or request.max_tiers > 4:
+        raise HTTPException(status_code=400, detail="Slot max tiers must be between 1 and 4.")
+    allowed = set(request.allowed_container_types)
+    supported = {"20ft", "40ft", "45ft"}
+    if not allowed or not allowed.issubset(supported):
+        raise HTTPException(status_code=400, detail="Allowed slot types must be chosen from 20ft, 40ft, 45ft.")
+    updated = supabase_client.update_slot(block, normalized_bay, row, model_to_dict(request))
+    if not updated:
+        raise HTTPException(status_code=404, detail="Slot not found.")
+    return updated
+
+
+@app.post("/api/containers/stack-in")
+async def stack_in(request: StackInRequest, current_user: Dict[str, Any] = Depends(require_permission("stack_in"))):
+    request_data = model_to_dict(request)
+    try:
+        normalized = validate_position(request.container_type, request.block, request.bay, request.row, request.tier)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    slot = get_slot_or_404(normalized["block"], normalized["bay"], normalized["row"])
+    ensure_slot_eligible(slot, normalized["container_type"], normalized["tier"])
+    existing = supabase_client.check_inventory(request.container_id)
+    if existing:
+        raise HTTPException(status_code=400, detail="Container ID already exists in inventory. Use Restow to move or Stack Out to remove.")
+    ensure_position_available(normalized["position_code"])
+    performed_at = supabase_client.utc_now_iso()
+    inventory_data = {
+        "container_id": request.container_id,
+        "container_type": normalized["container_type"],
+        "block": normalized["block"],
+        "bay": normalized["bay"],
+        "row_num": normalized["row"],
+        "tier_num": normalized["tier"],
+        "position_code": normalized["position_code"],
+        "status": request.status,
+        "direction": request.direction,
+        "line": request.line,
+        "expeditor": request.expeditor,
+        "damages": request.damages,
+        "seals": request.seals,
+        "arrived_at": performed_at,
+        "positioned_at": performed_at,
+    }
+    supabase_client.insert_inventory(inventory_data)
+    supabase_client.insert_log(build_log_entry(container_id=request.container_id, operation_type="STACK_IN", performed_at=performed_at, old_position_code=None, new_position_code=normalized["position_code"], container_snapshot=inventory_data, current_user=current_user))
+    dispatch_movement_notification(build_notification_payload(request_data=request_data, operation_type="STACK_IN", performed_at=performed_at, old_position_code=None, new_position_code=normalized["position_code"], container_snapshot=inventory_data, current_user=current_user))
+    return {"status": "success", "message": f"Container {request.container_id} received and positioned at {normalized['position_code']}."}
+
+
+@app.post("/api/containers/stack-out")
+async def stack_out(request: StackOutRequest, current_user: Dict[str, Any] = Depends(require_permission("stack_out"))):
+    request_data = model_to_dict(request)
+    existing = supabase_client.check_inventory(request.container_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Container ID not found in inventory.")
+    old_position = existing.get("position_code")
+    performed_at = supabase_client.utc_now_iso()
+    supabase_client.delete_inventory(request.container_id)
+    supabase_client.insert_log(build_log_entry(container_id=request.container_id, operation_type="STACK_OUT", performed_at=performed_at, old_position_code=old_position, new_position_code=None, container_snapshot=existing, current_user=current_user))
+    dispatch_movement_notification(build_notification_payload(request_data=request_data, operation_type="STACK_OUT", performed_at=performed_at, old_position_code=old_position, new_position_code=None, container_snapshot=existing, current_user=current_user))
+    return {"status": "success", "message": f"Container {request.container_id} checked out."}
+
+
+@app.post("/api/containers/restow")
+async def restow(request: RestowRequest, current_user: Dict[str, Any] = Depends(require_permission("restow"))):
+    request_data = model_to_dict(request)
+    existing = supabase_client.check_inventory(request.container_id)
+    if not existing:
+        raise HTTPException(status_code=404, detail="Container ID not found in inventory.")
+    try:
+        normalized = validate_position(existing.get("container_type"), request.new_block, request.new_bay, request.new_row, request.new_tier)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    slot = get_slot_or_404(normalized["block"], normalized["bay"], normalized["row"])
+    ensure_slot_eligible(slot, normalized["container_type"], normalized["tier"])
+    ensure_position_available(normalized["position_code"], exclude_container_id=request.container_id)
+    old_position = existing.get("position_code")
+    performed_at = supabase_client.utc_now_iso()
+    updates = {"block": normalized["block"], "bay": normalized["bay"], "row_num": normalized["row"], "tier_num": normalized["tier"], "position_code": normalized["position_code"], "positioned_at": performed_at}
+    supabase_client.update_inventory(request.container_id, updates)
+    updated_container = dict(existing)
+    updated_container.update(updates)
+    updated_container["updated_at"] = performed_at
+    supabase_client.insert_log(build_log_entry(container_id=request.container_id, operation_type="RESTOW", performed_at=performed_at, old_position_code=old_position, new_position_code=normalized["position_code"], container_snapshot=updated_container, current_user=current_user))
+    dispatch_movement_notification(build_notification_payload(request_data=request_data, operation_type="RESTOW", performed_at=performed_at, old_position_code=old_position, new_position_code=normalized["position_code"], container_snapshot=updated_container, current_user=current_user))
+    return {"status": "success", "message": f"Container {request.container_id} restowed to {normalized['position_code']}."}
+
+
+@app.get("/api/containers/inventory")
+async def get_inventory(current_user: Dict[str, Any] = Depends(require_permission("view_inventory"))):
+    return supabase_client.get_all_inventory()
+
+
+@app.get("/api/containers/logs")
+async def get_operations_log(container_id: Optional[str] = Query(default=None), date_from: Optional[str] = Query(default=None), date_to: Optional[str] = Query(default=None), limit: Optional[int] = Query(default=None, ge=1, le=1000), current_user: Dict[str, Any] = Depends(require_permission("view_inventory"))):
+    return supabase_client.get_operations_log(container_id=container_id, date_from=date_from, date_to=date_to, limit=limit)
+
+
+@app.get("/api/containers/history/{container_id}")
+async def get_container_history(container_id: str, current_user: Dict[str, Any] = Depends(require_permission("view_history"))):
+    history = supabase_client.get_container_history(container_id)
+    if not history:
+        raise HTTPException(status_code=404, detail="No history found for this container.")
+    return history
+
+
+@app.get("/api/yard/snapshot")
+async def get_yard_snapshot(snapshot_date: Optional[str] = Query(default=None, alias="date"), current_user: Dict[str, Any] = Depends(require_permission("view_inventory"))):
+    try:
+        snapshot_at = parse_snapshot_date(snapshot_date)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
+    containers = supabase_client.get_inventory_snapshot_at(snapshot_at)
+    return {"snapshot_date": snapshot_at[:10], "snapshot_at": snapshot_at, "total_containers": len(containers), "containers": containers}
+
+
+@app.post("/api/notifications/preview")
+async def preview_notification_routing(request: NotificationPreviewRequest, current_user: Dict[str, Any] = Depends(require_permission("view_inventory"))):
+    container = supabase_client.check_inventory(request.container_id)
+    if not container:
+        raise HTTPException(status_code=404, detail="Container not found.")
+    targets = supabase_client.get_notification_targets(request.operation_type, current_user, container)
+    return {"operation_type": request.operation_type, "container_id": request.container_id, "targets": targets}
+
+
+@app.get("/api/notifications/logs")
+async def get_notification_logs(limit: Optional[int] = Query(default=20, ge=1, le=200), current_user: Dict[str, Any] = Depends(require_permission("view_notifications"))):
+    return supabase_client.get_notification_logs(limit=limit)
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
