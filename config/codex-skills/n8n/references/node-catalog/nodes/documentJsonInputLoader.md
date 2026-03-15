@@ -1,0 +1,120 @@
+---
+title: "JSON Input Loader"
+description: "Use JSON data from a previous step in the workflow"
+---
+
+# JSON Input Loader
+**Node Type:** nodes-langchain.documentJsonInputLoader
+
+## Description
+Use JSON data from a previous step in the workflow
+
+## Schema
+```json
+{
+  "hidden": true,
+  "displayName": "JSON Input Loader",
+  "name": "documentJsonInputLoader",
+  "icon": "file:json.svg",
+  "group": [
+    "transform"
+  ],
+  "version": 1,
+  "description": "Use JSON data from a previous step in the workflow",
+  "defaults": {
+    "name": "JSON Input Loader"
+  },
+  "codex": {
+    "categories": [
+      "AI"
+    ],
+    "subcategories": {
+      "AI": [
+        "Document Loaders"
+      ]
+    },
+    "resources": {
+      "primaryDocumentation": [
+        {
+          "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.documentdefaultdataloader/"
+        }
+      ]
+    }
+  },
+  "inputs": [
+    {
+      "displayName": "Text Splitter",
+      "maxConnections": 1,
+      "type": "ai_textSplitter"
+    }
+  ],
+  "inputNames": [
+    "Text Splitter"
+  ],
+  "outputs": [
+    "ai_document"
+  ],
+  "outputNames": [
+    "Document"
+  ],
+  "properties": [
+    {
+      "displayName": "This node must be connected to a vector store. <a data-action='openSelectiveNodeCreator' data-action-parameter-connectiontype='ai_vectorStore'>Insert one</a>",
+      "name": "notice",
+      "type": "notice",
+      "default": "",
+      "typeOptions": {
+        "containerClass": "ndv-connection-hint-notice"
+      }
+    },
+    {
+      "displayName": "Pointers",
+      "name": "pointers",
+      "type": "string",
+      "default": "",
+      "description": "Pointers to extract from JSON, e.g. \"/text\" or \"/text, /meta/title\""
+    },
+    {
+      "displayName": "Options",
+      "name": "options",
+      "type": "collection",
+      "placeholder": "Add Option",
+      "default": {},
+      "options": [
+        {
+          "displayName": "Metadata",
+          "name": "metadata",
+          "type": "fixedCollection",
+          "description": "Metadata to add to each document. Could be used for filtering during retrieval",
+          "typeOptions": {
+            "multipleValues": true
+          },
+          "default": {},
+          "placeholder": "Add property",
+          "options": [
+            {
+              "name": "metadataValues",
+              "displayName": "Fields to Set",
+              "values": [
+                {
+                  "displayName": "Name",
+                  "name": "name",
+                  "type": "string",
+                  "default": "",
+                  "required": true
+                },
+                {
+                  "displayName": "Value",
+                  "name": "value",
+                  "type": "string",
+                  "default": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```

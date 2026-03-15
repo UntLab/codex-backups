@@ -1,0 +1,47 @@
+---
+description: Project context system — resume previous work across chat sessions
+alwaysApply: true
+---
+
+# Project Context System
+
+When a user mentions a project or wants to continue previous work:
+
+1. **List available projects**: Read `~/Cursor/projects/contexts/` to see all project files
+2. **Load context**: Read the matching `<project-name>.md` file to restore full context
+3. **Resume work**: Continue exactly from the `## Next Steps` section
+
+When finishing a chat session or completing a milestone:
+
+1. **Update the project file** with current status, what was done, and next steps
+2. Keep the file concise — focus on actionable state, not conversation history
+
+## Project File Format
+
+Each project file in `~/Cursor/projects/contexts/` follows this structure:
+
+```
+# Project Name
+- **Status**: active / paused / completed
+- **Last session**: date
+- **Summary**: one-line description
+
+## Key Info
+Critical IDs, credentials references, account names, URLs
+
+## Completed
+What has been done (bullet list)
+
+## Next Steps
+Exactly where to continue (numbered action items)
+
+## Notes
+Important decisions, gotchas, things to remember
+```
+
+## Behavior Rules
+
+- When user says "continue", "let's resume", "open project", or mentions a project name — load its context file immediately
+- Always answer in the language noted in the project file (or ask if not specified)
+- After significant progress, update the project file without being asked
+- If no project file exists for a new task, create one

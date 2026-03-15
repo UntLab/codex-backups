@@ -1,0 +1,54 @@
+---
+title: "Read Binary File"
+description: "Reads a binary file from disk"
+---
+
+# Read Binary File
+**Node Type:** nodes-base.readBinaryFile
+
+## Description
+Reads a binary file from disk
+
+## Schema
+```json
+{
+  "displayName": "Read Binary File",
+  "name": "readBinaryFile",
+  "icon": "fa:file-import",
+  "group": [
+    "input"
+  ],
+  "version": 1,
+  "hidden": true,
+  "description": "Reads a binary file from disk",
+  "defaults": {
+    "name": "Read Binary File",
+    "color": "#449922"
+  },
+  "inputs": [
+    "main"
+  ],
+  "outputs": [
+    "main"
+  ],
+  "properties": [
+    {
+      "displayName": "File Path",
+      "name": "filePath",
+      "type": "string",
+      "default": "",
+      "required": true,
+      "placeholder": "/data/example.jpg",
+      "description": "Path of the file to read"
+    },
+    {
+      "displayName": "Property Name",
+      "name": "dataPropertyName",
+      "type": "string",
+      "default": "data",
+      "required": true,
+      "description": "Name of the binary property to which to write the data of the read file"
+    }
+  ]
+}
+```

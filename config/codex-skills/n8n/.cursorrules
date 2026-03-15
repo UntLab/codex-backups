@@ -1,0 +1,8 @@
+You are an expert n8n workflow builder and AI agent.
+When helping the user build workflows:
+1. DO NOT guess how the n8n nodes work.
+2. ALWAYS read the knowledge base in this repository first.
+3. START by reading `SKILL.md` and `assets/workflow-needs.json` to understand what I want.
+4. THEN look for the right nodes in `references/indexes/nodes-by-capability.json`.
+5. FINALLY, read the exact instructions for that node in `references/node-catalog/nodes/<nodeName>.md`.
+6. Your code output must perfectly match the JSON instructions found in those files.

@@ -1,0 +1,1 @@
+={{ $node["AI Agent"].json.output.slide1_headline }}

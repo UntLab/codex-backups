@@ -1,0 +1,87 @@
+[
+  {
+    "name": "cron",
+    "displayName": "Cron",
+    "groups": [
+      "trigger",
+      "schedule"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven",
+      "scheduling"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Cron/Cron.node.js"
+  },
+  {
+    "name": "interval",
+    "displayName": "Interval",
+    "groups": [
+      "trigger",
+      "schedule"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven",
+      "scheduling"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Interval/Interval.node.js"
+  },
+  {
+    "name": "scheduleTrigger",
+    "displayName": "Schedule Trigger",
+    "groups": [
+      "trigger",
+      "schedule"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven",
+      "scheduling"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Schedule/ScheduleTrigger.node.js"
+  },
+  {
+    "name": "wait",
+    "displayName": "Wait",
+    "groups": [
+      "organization"
+    ],
+    "inputs": [
+      "main"
+    ],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "httpBasicAuth",
+      "httpHeaderAuth",
+      "jwtAuth"
+    ],
+    "capabilities": [
+      "api-integration",
+      "scheduling"
+    ],
+    "parametersCount": 27,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Wait/Wait.node.js"
+  }
+]

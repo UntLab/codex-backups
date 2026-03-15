@@ -14,6 +14,10 @@ if ! git remote get-url origin >/dev/null 2>&1; then
   exit 1
 fi
 
+# Sync projects and config into backup repo
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${SCRIPT_DIR}/sync-sources.sh"
+
 git add -A
 
 if git diff --cached --quiet; then

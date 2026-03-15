@@ -1,0 +1,139 @@
+---
+title: "Pinecone: Load"
+description: "Load data from Pinecone Vector Store index"
+---
+
+# Pinecone: Load
+**Node Type:** nodes-langchain.vectorStorePineconeLoad
+
+## Description
+Load data from Pinecone Vector Store index
+
+## Schema
+```json
+{
+  "displayName": "Pinecone: Load",
+  "hidden": true,
+  "name": "vectorStorePineconeLoad",
+  "icon": "file:pinecone.svg",
+  "group": [
+    "transform"
+  ],
+  "version": 1,
+  "description": "Load data from Pinecone Vector Store index",
+  "defaults": {
+    "name": "Pinecone: Load"
+  },
+  "codex": {
+    "categories": [
+      "AI"
+    ],
+    "subcategories": {
+      "AI": [
+        "Vector Stores"
+      ]
+    },
+    "resources": {
+      "primaryDocumentation": [
+        {
+          "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/root-nodes/n8n-nodes-langchain.vectorstorepinecone/"
+        }
+      ]
+    }
+  },
+  "credentials": [
+    {
+      "name": "pineconeApi",
+      "required": true
+    }
+  ],
+  "inputs": [
+    {
+      "displayName": "Embedding",
+      "maxConnections": 1,
+      "type": "ai_embedding",
+      "required": true
+    }
+  ],
+  "outputs": [
+    "ai_vectorStore"
+  ],
+  "outputNames": [
+    "Vector Store"
+  ],
+  "properties": [
+    {
+      "displayName": "Pinecone Index",
+      "name": "pineconeIndex",
+      "type": "resourceLocator",
+      "default": {
+        "mode": "list",
+        "value": ""
+      },
+      "required": true,
+      "modes": [
+        {
+          "displayName": "From List",
+          "name": "list",
+          "type": "list",
+          "typeOptions": {
+            "searchListMethod": "pineconeIndexSearch"
+          }
+        },
+        {
+          "displayName": "ID",
+          "name": "id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "displayName": "Pinecone Namespace",
+      "name": "pineconeNamespace",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "displayName": "Options",
+      "name": "options",
+      "type": "collection",
+      "placeholder": "Add Option",
+      "default": {},
+      "options": [
+        {
+          "displayName": "Metadata Filter",
+          "name": "metadata",
+          "type": "fixedCollection",
+          "description": "Metadata to filter the document by",
+          "typeOptions": {
+            "multipleValues": true
+          },
+          "default": {},
+          "placeholder": "Add filter field",
+          "options": [
+            {
+              "name": "metadataValues",
+              "displayName": "Fields to Set",
+              "values": [
+                {
+                  "displayName": "Name",
+                  "name": "name",
+                  "type": "string",
+                  "default": "",
+                  "required": true
+                },
+                {
+                  "displayName": "Value",
+                  "name": "value",
+                  "type": "string",
+                  "default": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```

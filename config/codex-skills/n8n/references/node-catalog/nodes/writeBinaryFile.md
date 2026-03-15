@@ -1,0 +1,70 @@
+---
+title: "Write Binary File"
+description: "Writes a binary file to disk"
+---
+
+# Write Binary File
+**Node Type:** nodes-base.writeBinaryFile
+
+## Description
+Writes a binary file to disk
+
+## Schema
+```json
+{
+  "hidden": true,
+  "displayName": "Write Binary File",
+  "name": "writeBinaryFile",
+  "icon": "fa:file-export",
+  "group": [
+    "output"
+  ],
+  "version": 1,
+  "description": "Writes a binary file to disk",
+  "defaults": {
+    "name": "Write Binary File",
+    "color": "#CC2233"
+  },
+  "inputs": [
+    "main"
+  ],
+  "outputs": [
+    "main"
+  ],
+  "properties": [
+    {
+      "displayName": "File Name",
+      "name": "fileName",
+      "type": "string",
+      "default": "",
+      "required": true,
+      "placeholder": "/data/example.jpg",
+      "description": "Path to which the file should be written"
+    },
+    {
+      "displayName": "Property Name",
+      "name": "dataPropertyName",
+      "type": "string",
+      "default": "data",
+      "required": true,
+      "description": "Name of the binary property which contains the data for the file to be written"
+    },
+    {
+      "displayName": "Options",
+      "name": "options",
+      "type": "collection",
+      "placeholder": "Add option",
+      "default": {},
+      "options": [
+        {
+          "displayName": "Append",
+          "name": "append",
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to append to an existing file"
+        }
+      ]
+    }
+  ]
+}
+```

@@ -1,0 +1,11 @@
+{
+  "n8n_base_url": "http://n8n.2ai.az",
+  "n8n_api_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5OGViYWVkMy03YjE0LTQ3Y2YtYWY5NC00YjYyMjNlMDU5MDgiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiYzYzZWQ1MjctODgyMC00M2JhLTk1N2UtODUxNjNhNjIyOTE2IiwiaWF0IjoxNzcxNDg0OTkxfQ.0t0zCcNgqQ_a20gkUh6jMoZBFpuxEzrPhESVqI38npY",
+  "workflow_id": "HwO0UZOsWuBuOEhZ2UHR5",
+  "google_docs": [
+    {
+      "name": "Toppic for LinkedIn",
+      "url": "https://docs.google.com/spreadsheets/d/1icjNV7zGXEzADe5Frp3CaRb3xt5dDzqOpzr4JsrdxQ0/edit?gid=0#gid=0"
+    }
+  ]
+}

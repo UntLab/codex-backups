@@ -1,0 +1,74 @@
+---
+title: "Manual Chat Trigger"
+description: "Runs the flow on new manual chat message"
+---
+
+# Manual Chat Trigger
+**Node Type:** nodes-langchain.manualChatTrigger
+
+## Description
+Runs the flow on new manual chat message
+
+## Schema
+```json
+{
+  "displayName": "Manual Chat Trigger",
+  "name": "manualChatTrigger",
+  "icon": "fa:comments",
+  "group": [
+    "trigger"
+  ],
+  "version": [
+    1,
+    1.1
+  ],
+  "description": "Runs the flow on new manual chat message",
+  "eventTriggerDescription": "",
+  "maxNodes": 1,
+  "hidden": true,
+  "defaults": {
+    "name": "When chat message received",
+    "color": "#909298"
+  },
+  "codex": {
+    "categories": [
+      "Core Nodes"
+    ],
+    "resources": {
+      "primaryDocumentation": [
+        {
+          "url": "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-langchain.chattrigger/"
+        }
+      ]
+    },
+    "subcategories": {
+      "Core Nodes": [
+        "Other Trigger Nodes"
+      ]
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    "main"
+  ],
+  "properties": [
+    {
+      "displayName": "This node is where a manual chat workflow execution starts. To make one, go back to the canvas and click ‘Chat’",
+      "name": "notice",
+      "type": "notice",
+      "default": ""
+    },
+    {
+      "displayName": "Chat and execute workflow",
+      "name": "openChat",
+      "type": "button",
+      "typeOptions": {
+        "buttonConfig": {
+          "action": "openChat"
+        }
+      },
+      "default": ""
+    }
+  ]
+}
+```

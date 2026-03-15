@@ -1,0 +1,59 @@
+---
+title: "PayPal Trigger"
+description: "Handle PayPal events via webhooks"
+---
+
+# PayPal Trigger
+**Node Type:** nodes-base.payPalTrigger
+
+## Description
+Handle PayPal events via webhooks
+
+## Schema
+```json
+{
+  "displayName": "PayPal Trigger",
+  "name": "payPalTrigger",
+  "icon": "file:paypal.svg",
+  "group": [
+    "trigger"
+  ],
+  "version": 1,
+  "description": "Handle PayPal events via webhooks",
+  "defaults": {
+    "name": "PayPal Trigger"
+  },
+  "inputs": [],
+  "outputs": [
+    "main"
+  ],
+  "credentials": [
+    {
+      "name": "payPalApi",
+      "required": true
+    }
+  ],
+  "webhooks": [
+    {
+      "name": "default",
+      "httpMethod": "POST",
+      "responseMode": "onReceived",
+      "path": "webhook"
+    }
+  ],
+  "properties": [
+    {
+      "displayName": "Event Names or IDs",
+      "name": "events",
+      "type": "multiOptions",
+      "required": true,
+      "default": [],
+      "description": "The event to listen to. Choose from the list, or specify IDs using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>.",
+      "typeOptions": {
+        "loadOptionsMethod": "getEvents"
+      },
+      "options": []
+    }
+  ]
+}
+```

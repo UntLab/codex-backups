@@ -1,0 +1,2342 @@
+[
+  {
+    "name": "activeCampaignTrigger",
+    "displayName": "ActiveCampaign Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "activeCampaignApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/ActiveCampaign/ActiveCampaignTrigger.node.js"
+  },
+  {
+    "name": "acuitySchedulingTrigger",
+    "displayName": "Acuity Scheduling Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "acuitySchedulingApi",
+      "acuitySchedulingOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/AcuityScheduling/AcuitySchedulingTrigger.node.js"
+  },
+  {
+    "name": "affinityTrigger",
+    "displayName": "Affinity Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "affinityApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Affinity/AffinityTrigger.node.js"
+  },
+  {
+    "name": "airtableTrigger",
+    "displayName": "Airtable Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "airtableApi",
+      "airtableTokenApi",
+      "airtableOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 7,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Airtable/AirtableTrigger.node.js"
+  },
+  {
+    "name": "amqpTrigger",
+    "displayName": "AMQP Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "amqp"
+    ],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Amqp/AmqpTrigger.node.js"
+  },
+  {
+    "name": "asanaTrigger",
+    "displayName": "Asana Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "asanaApi",
+      "asanaOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Asana/AsanaTrigger.node.js"
+  },
+  {
+    "name": "autopilotTrigger",
+    "displayName": "Autopilot Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "autopilotApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Autopilot/AutopilotTrigger.node.js"
+  },
+  {
+    "name": "awsSnsTrigger",
+    "displayName": "AWS SNS Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "aws",
+      "awsAssumeRole"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Aws/AwsSnsTrigger.node.js"
+  },
+  {
+    "name": "bitbucketTrigger",
+    "displayName": "Bitbucket Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "bitbucketApi",
+      "bitbucketAccessTokenApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 7,
+    "resources": [
+      {
+        "name": "Repository",
+        "value": "repository"
+      },
+      {
+        "name": "Workspace",
+        "value": "workspace"
+      }
+    ],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Bitbucket/BitbucketTrigger.node.js"
+  },
+  {
+    "name": "boxTrigger",
+    "displayName": "Box Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "boxOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Box/BoxTrigger.node.js"
+  },
+  {
+    "name": "calendlyTrigger",
+    "displayName": "Calendly Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "calendlyApi",
+      "calendlyOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Calendly/CalendlyTrigger.node.js"
+  },
+  {
+    "name": "calTrigger",
+    "displayName": "Cal.com Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "calApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Cal/CalTrigger.node.js"
+  },
+  {
+    "name": "chargebeeTrigger",
+    "displayName": "Chargebee Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Chargebee/ChargebeeTrigger.node.js"
+  },
+  {
+    "name": "ciscoWebexTrigger",
+    "displayName": "Webex by Cisco Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "ciscoWebexOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 11,
+    "resources": [
+      {
+        "name": "[All]",
+        "value": "all"
+      },
+      {
+        "name": "Attachment Action",
+        "value": "attachmentAction"
+      },
+      {
+        "name": "Meeting",
+        "value": "meeting"
+      },
+      {
+        "name": "Membership",
+        "value": "membership"
+      },
+      {
+        "name": "Message",
+        "value": "message"
+      },
+      {
+        "name": "Recording",
+        "value": "recording"
+      },
+      {
+        "name": "Room",
+        "value": "room"
+      }
+    ],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Cisco/Webex/CiscoWebexTrigger.node.js"
+  },
+  {
+    "name": "clickUpTrigger",
+    "displayName": "ClickUp Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "clickUpApi",
+      "clickUpOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/ClickUp/ClickUpTrigger.node.js"
+  },
+  {
+    "name": "clockifyTrigger",
+    "displayName": "Clockify Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "clockifyApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Clockify/ClockifyTrigger.node.js"
+  },
+  {
+    "name": "convertKitTrigger",
+    "displayName": "ConvertKit Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "convertKitApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 6,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/ConvertKit/ConvertKitTrigger.node.js"
+  },
+  {
+    "name": "copperTrigger",
+    "displayName": "Copper Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "copperApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [
+      {
+        "name": "Company",
+        "value": "company"
+      },
+      {
+        "name": "Lead",
+        "value": "lead"
+      },
+      {
+        "name": "Opportunity",
+        "value": "opportunity"
+      },
+      {
+        "name": "Person",
+        "value": "person"
+      },
+      {
+        "name": "Project",
+        "value": "project"
+      },
+      {
+        "name": "Task",
+        "value": "task"
+      }
+    ],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Copper/CopperTrigger.node.js"
+  },
+  {
+    "name": "cron",
+    "displayName": "Cron",
+    "groups": [
+      "trigger",
+      "schedule"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven",
+      "scheduling"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Cron/Cron.node.js"
+  },
+  {
+    "name": "currentsTrigger",
+    "displayName": "Currents Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "currentsApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Currents/CurrentsTrigger.node.js"
+  },
+  {
+    "name": "customerIoTrigger",
+    "displayName": "Customer.io Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "customerIoApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/CustomerIo/CustomerIoTrigger.node.js"
+  },
+  {
+    "name": "emailReadImap",
+    "displayName": "Email Trigger (IMAP)",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "imap"
+    ],
+    "capabilities": [
+      "documents-and-files",
+      "event-driven",
+      "notifications-and-messaging"
+    ],
+    "parametersCount": 7,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/EmailReadImap/EmailReadImap.node.js"
+  },
+  {
+    "name": "emeliaTrigger",
+    "displayName": "Emelia Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "emeliaApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Emelia/EmeliaTrigger.node.js"
+  },
+  {
+    "name": "errorTrigger",
+    "displayName": "Error Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/ErrorTrigger/ErrorTrigger.node.js"
+  },
+  {
+    "name": "eventbriteTrigger",
+    "displayName": "Eventbrite Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "eventbriteApi",
+      "eventbriteOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 5,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Eventbrite/EventbriteTrigger.node.js"
+  },
+  {
+    "name": "executeWorkflowTrigger",
+    "displayName": "Execute Workflow Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 7,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/ExecuteWorkflow/ExecuteWorkflowTrigger/ExecuteWorkflowTrigger.node.js"
+  },
+  {
+    "name": "facebookLeadAdsTrigger",
+    "displayName": "Facebook Lead Ads Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "facebookLeadAdsOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "sales-marketing-ecommerce"
+    ],
+    "parametersCount": 5,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/FacebookLeadAds/FacebookLeadAdsTrigger.node.js"
+  },
+  {
+    "name": "facebookTrigger",
+    "displayName": "Facebook Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "facebookGraphAppApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 5,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Facebook/FacebookTrigger.node.js"
+  },
+  {
+    "name": "figmaTrigger",
+    "displayName": "Figma Trigger (Beta)",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "figmaApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Figma/FigmaTrigger.node.js"
+  },
+  {
+    "name": "flowTrigger",
+    "displayName": "Flow Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "flowApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [
+      {
+        "name": "Project",
+        "value": "list"
+      },
+      {
+        "name": "Task",
+        "value": "task"
+      }
+    ],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Flow/FlowTrigger.node.js"
+  },
+  {
+    "name": "formIoTrigger",
+    "displayName": "Form.io Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "formIoApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/FormIo/FormIoTrigger.node.js"
+  },
+  {
+    "name": "formstackTrigger",
+    "displayName": "Formstack Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "formstackApi",
+      "formstackOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Formstack/FormstackTrigger.node.js"
+  },
+  {
+    "name": "formTrigger",
+    "displayName": "n8n Form Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "httpBasicAuth"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 11,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Form/FormTrigger.node.js"
+  },
+  {
+    "name": "getResponseTrigger",
+    "displayName": "GetResponse Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "getResponseApi",
+      "getResponseOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/GetResponse/GetResponseTrigger.node.js"
+  },
+  {
+    "name": "githubTrigger",
+    "displayName": "Github Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "githubApi",
+      "githubOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "engineering-and-ops",
+      "event-driven"
+    ],
+    "parametersCount": 6,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Github/GithubTrigger.node.js"
+  },
+  {
+    "name": "gitlabTrigger",
+    "displayName": "GitLab Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "gitlabApi",
+      "gitlabOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "engineering-and-ops",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Gitlab/GitlabTrigger.node.js"
+  },
+  {
+    "name": "gmailTrigger",
+    "displayName": "Gmail Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "googleApi",
+      "gmailOAuth2"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "notifications-and-messaging",
+      "scheduling"
+    ],
+    "parametersCount": 5,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Google/Gmail/GmailTrigger.node.js"
+  },
+  {
+    "name": "googleBusinessProfileTrigger",
+    "displayName": "Google Business Profile Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "googleBusinessProfileOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "documents-and-files",
+      "event-driven",
+      "scheduling"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Google/BusinessProfile/GoogleBusinessProfileTrigger.node.js"
+  },
+  {
+    "name": "googleCalendarTrigger",
+    "displayName": "Google Calendar Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "googleCalendarOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Google/Calendar/GoogleCalendarTrigger.node.js"
+  },
+  {
+    "name": "googleDriveTrigger",
+    "displayName": "Google Drive Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "googleApi",
+      "googleDriveOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "documents-and-files",
+      "event-driven"
+    ],
+    "parametersCount": 10,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Google/Drive/GoogleDriveTrigger.node.js"
+  },
+  {
+    "name": "googleSheetsTrigger",
+    "displayName": "Google Sheets Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "googleSheetsTriggerOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "documents-and-files",
+      "event-driven"
+    ],
+    "parametersCount": 6,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Google/Sheet/GoogleSheetsTrigger.node.js"
+  },
+  {
+    "name": "gumroadTrigger",
+    "displayName": "Gumroad Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "gumroadApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [
+      {
+        "name": "Cancellation",
+        "value": "cancellation"
+      },
+      {
+        "name": "Dispute",
+        "value": "dispute"
+      },
+      {
+        "name": "Dispute Won",
+        "value": "dispute_won"
+      },
+      {
+        "name": "Refund",
+        "value": "refund"
+      },
+      {
+        "name": "Sale",
+        "value": "sale"
+      }
+    ],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Gumroad/GumroadTrigger.node.js"
+  },
+  {
+    "name": "helpScoutTrigger",
+    "displayName": "Help Scout Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "helpScoutOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/HelpScout/HelpScoutTrigger.node.js"
+  },
+  {
+    "name": "hubspotTrigger",
+    "displayName": "HubSpot Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "hubspotDeveloperApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "sales-marketing-ecommerce"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Hubspot/HubspotTrigger.node.js"
+  },
+  {
+    "name": "interval",
+    "displayName": "Interval",
+    "groups": [
+      "trigger",
+      "schedule"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven",
+      "scheduling"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Interval/Interval.node.js"
+  },
+  {
+    "name": "invoiceNinjaTrigger",
+    "displayName": "Invoice Ninja Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "invoiceNinjaApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/InvoiceNinja/InvoiceNinjaTrigger.node.js"
+  },
+  {
+    "name": "jiraTrigger",
+    "displayName": "Jira Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "jiraSoftwareCloudApi",
+      "jiraSoftwareServerApi",
+      "jiraSoftwareServerPatApi",
+      "httpQueryAuth",
+      "httpQueryAuth"
+    ],
+    "capabilities": [
+      "api-integration",
+      "engineering-and-ops",
+      "event-driven"
+    ],
+    "parametersCount": 5,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Jira/JiraTrigger.node.js"
+  },
+  {
+    "name": "jotFormTrigger",
+    "displayName": "Jotform Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "jotFormApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/JotForm/JotFormTrigger.node.js"
+  },
+  {
+    "name": "kafkaTrigger",
+    "displayName": "Kafka Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "kafka"
+    ],
+    "capabilities": [
+      "engineering-and-ops",
+      "event-driven"
+    ],
+    "parametersCount": 7,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Kafka/KafkaTrigger.node.js"
+  },
+  {
+    "name": "keapTrigger",
+    "displayName": "Keap Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "keapOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Keap/KeapTrigger.node.js"
+  },
+  {
+    "name": "koBoToolboxTrigger",
+    "displayName": "KoBoToolbox Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "koBoToolboxApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/KoBoToolbox/KoBoToolboxTrigger.node.js"
+  },
+  {
+    "name": "lemlistTrigger",
+    "displayName": "Lemlist Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "lemlistApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Lemlist/LemlistTrigger.node.js"
+  },
+  {
+    "name": "linearTrigger",
+    "displayName": "Linear Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "linearApi",
+      "linearOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Linear/LinearTrigger.node.js"
+  },
+  {
+    "name": "localFileTrigger",
+    "displayName": "Local File Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "documents-and-files",
+      "event-driven"
+    ],
+    "parametersCount": 5,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/LocalFileTrigger/LocalFileTrigger.node.js"
+  },
+  {
+    "name": "loneScaleTrigger",
+    "displayName": "LoneScale Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "loneScaleApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/LoneScale/LoneScaleTrigger.node.js"
+  },
+  {
+    "name": "mailchimpTrigger",
+    "displayName": "Mailchimp Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "mailchimpApi",
+      "mailchimpOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "sales-marketing-ecommerce"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Mailchimp/MailchimpTrigger.node.js"
+  },
+  {
+    "name": "mailerLiteTrigger",
+    "displayName": "MailerLite Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "mailerLiteApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/MailerLite/MailerLiteTrigger.node.js"
+  },
+  {
+    "name": "mailjetTrigger",
+    "displayName": "Mailjet Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "mailjetEmailApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "notifications-and-messaging"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Mailjet/MailjetTrigger.node.js"
+  },
+  {
+    "name": "manualTrigger",
+    "displayName": "Manual Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/ManualTrigger/ManualTrigger.node.js"
+  },
+  {
+    "name": "mauticTrigger",
+    "displayName": "Mautic Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "mauticApi",
+      "mauticOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Mautic/MauticTrigger.node.js"
+  },
+  {
+    "name": "microsoftOneDriveTrigger",
+    "displayName": "Microsoft OneDrive Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "microsoftOneDriveOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "documents-and-files",
+      "event-driven"
+    ],
+    "parametersCount": 11,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Microsoft/OneDrive/MicrosoftOneDriveTrigger.node.js"
+  },
+  {
+    "name": "microsoftOutlookTrigger",
+    "displayName": "Microsoft Outlook Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "microsoftOutlookOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "notifications-and-messaging",
+      "scheduling"
+    ],
+    "parametersCount": 5,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Microsoft/Outlook/MicrosoftOutlookTrigger.node.js"
+  },
+  {
+    "name": "microsoftTeamsTrigger",
+    "displayName": "Microsoft Teams Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "microsoftTeamsOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "notifications-and-messaging"
+    ],
+    "parametersCount": 7,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Microsoft/Teams/MicrosoftTeamsTrigger.node.js"
+  },
+  {
+    "name": "mqttTrigger",
+    "displayName": "MQTT Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "mqtt"
+    ],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/MQTT/MqttTrigger.node.js"
+  },
+  {
+    "name": "n8nTrigger",
+    "displayName": "n8n Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/N8nTrigger/N8nTrigger.node.js"
+  },
+  {
+    "name": "netlifyTrigger",
+    "displayName": "Netlify Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "netlifyApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Netlify/NetlifyTrigger.node.js"
+  },
+  {
+    "name": "notionTrigger",
+    "displayName": "Notion Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "notionApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Notion/NotionTrigger.node.js"
+  },
+  {
+    "name": "onfleetTrigger",
+    "displayName": "Onfleet Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "onfleetApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Onfleet/OnfleetTrigger.node.js"
+  },
+  {
+    "name": "payPalTrigger",
+    "displayName": "PayPal Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "payPalApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/PayPal/PayPalTrigger.node.js"
+  },
+  {
+    "name": "pipedriveTrigger",
+    "displayName": "Pipedrive Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "pipedriveApi",
+      "pipedriveOAuth2Api",
+      "httpBasicAuth"
+    ],
+    "capabilities": [
+      "api-integration",
+      "documents-and-files",
+      "event-driven",
+      "sales-marketing-ecommerce"
+    ],
+    "parametersCount": 6,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Pipedrive/PipedriveTrigger.node.js"
+  },
+  {
+    "name": "postgresTrigger",
+    "displayName": "Postgres Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "postgres"
+    ],
+    "capabilities": [
+      "api-integration",
+      "data-storage",
+      "event-driven"
+    ],
+    "parametersCount": 7,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Postgres/PostgresTrigger.node.js"
+  },
+  {
+    "name": "postmarkTrigger",
+    "displayName": "Postmark Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "postmarkApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Postmark/PostmarkTrigger.node.js"
+  },
+  {
+    "name": "pushcutTrigger",
+    "displayName": "Pushcut Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "pushcutApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Pushcut/PushcutTrigger.node.js"
+  },
+  {
+    "name": "rabbitmqTrigger",
+    "displayName": "RabbitMQ Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "rabbitmq"
+    ],
+    "capabilities": [
+      "engineering-and-ops",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/RabbitMQ/RabbitMQTrigger.node.js"
+  },
+  {
+    "name": "redisTrigger",
+    "displayName": "Redis Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "redis"
+    ],
+    "capabilities": [
+      "data-storage",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Redis/RedisTrigger.node.js"
+  },
+  {
+    "name": "rssFeedReadTrigger",
+    "displayName": "RSS Feed Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "documents-and-files",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/RssFeedRead/RssFeedReadTrigger.node.js"
+  },
+  {
+    "name": "salesforceTrigger",
+    "displayName": "Salesforce Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "salesforceOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "sales-marketing-ecommerce",
+      "scheduling"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Salesforce/SalesforceTrigger.node.js"
+  },
+  {
+    "name": "scheduleTrigger",
+    "displayName": "Schedule Trigger",
+    "groups": [
+      "trigger",
+      "schedule"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven",
+      "scheduling"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Schedule/ScheduleTrigger.node.js"
+  },
+  {
+    "name": "seaTableTrigger",
+    "displayName": "SeaTable Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "seaTableApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 6,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/SeaTable/SeaTableTrigger.node.js"
+  },
+  {
+    "name": "sendInBlueTrigger",
+    "displayName": "Brevo Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "sendInBlueApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Brevo/BrevoTrigger.node.js"
+  },
+  {
+    "name": "shopifyTrigger",
+    "displayName": "Shopify Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "shopifyApi",
+      "shopifyAccessTokenApi",
+      "shopifyOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "sales-marketing-ecommerce"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Shopify/ShopifyTrigger.node.js"
+  },
+  {
+    "name": "simulateTrigger",
+    "displayName": "Simulate Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Simulate/SimulateTrigger.node.js"
+  },
+  {
+    "name": "slackTrigger",
+    "displayName": "Slack Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "slackApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "notifications-and-messaging"
+    ],
+    "parametersCount": 8,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Slack/SlackTrigger.node.js"
+  },
+  {
+    "name": "sseTrigger",
+    "displayName": "SSE Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/SseTrigger/SseTrigger.node.js"
+  },
+  {
+    "name": "stravaTrigger",
+    "displayName": "Strava Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "stravaOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Strava/StravaTrigger.node.js"
+  },
+  {
+    "name": "stripeTrigger",
+    "displayName": "Stripe Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "stripeApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "sales-marketing-ecommerce"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Stripe/StripeTrigger.node.js"
+  },
+  {
+    "name": "surveyMonkeyTrigger",
+    "displayName": "SurveyMonkey Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "surveyMonkeyApi",
+      "surveyMonkeyOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 9,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/SurveyMonkey/SurveyMonkeyTrigger.node.js"
+  },
+  {
+    "name": "taigaTrigger",
+    "displayName": "Taiga Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "taigaApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Taiga/TaigaTrigger.node.js"
+  },
+  {
+    "name": "telegramTrigger",
+    "displayName": "Telegram Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "telegramApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "notifications-and-messaging"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Telegram/TelegramTrigger.node.js"
+  },
+  {
+    "name": "theHiveProjectTrigger",
+    "displayName": "TheHive 5 Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/TheHiveProject/TheHiveProjectTrigger.node.js"
+  },
+  {
+    "name": "theHiveTrigger",
+    "displayName": "TheHive Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/TheHive/TheHiveTrigger.node.js"
+  },
+  {
+    "name": "togglTrigger",
+    "displayName": "Toggl Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "togglApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Toggl/TogglTrigger.node.js"
+  },
+  {
+    "name": "trelloTrigger",
+    "displayName": "Trello Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "trelloApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Trello/TrelloTrigger.node.js"
+  },
+  {
+    "name": "twilioTrigger",
+    "displayName": "Twilio Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "twilioApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "notifications-and-messaging"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Twilio/TwilioTrigger.node.js"
+  },
+  {
+    "name": "typeformTrigger",
+    "displayName": "Typeform Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "typeformApi",
+      "typeformOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Typeform/TypeformTrigger.node.js"
+  },
+  {
+    "name": "venafiTlsProtectCloudTrigger",
+    "displayName": "Venafi TLS Protect Cloud Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "venafiTlsProtectCloudApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Venafi/ProtectCloud/VenafiTlsProtectCloudTrigger.node.js"
+  },
+  {
+    "name": "venafiTlsProtectDatacenterTrigger",
+    "displayName": "Venafi TLS Protect Datacenter Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "venafiTlsProtectDatacenterApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Venafi/Datacenter/VenafiTlsProtectDatacenterTrigger.node.js"
+  },
+  {
+    "name": "webflowTrigger",
+    "displayName": "Webflow Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "webflowOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Webflow/WebflowTrigger.node.js"
+  },
+  {
+    "name": "webhook",
+    "displayName": "Webhook",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "={{((parameters) => {\n    const httpMethod = parameters.httpMethod;\n    if (!Array.isArray(httpMethod))\n        return [\n            {\n                type: 'main',\n                displayName: httpMethod,\n            },\n        ];\n    const outputs = httpMethod.map((method) => {\n        return {\n            type: 'main',\n            displayName: method,\n        };\n    });\n    return outputs;\n})($parameter)}}"
+    ],
+    "credentials": [
+      "httpBasicAuth",
+      "httpHeaderAuth",
+      "jwtAuth"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 14,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Webhook/Webhook.node.js"
+  },
+  {
+    "name": "whatsAppTrigger",
+    "displayName": "WhatsApp Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "whatsAppTriggerApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven",
+      "notifications-and-messaging"
+    ],
+    "parametersCount": 3,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/WhatsApp/WhatsAppTrigger.node.js"
+  },
+  {
+    "name": "wiseTrigger",
+    "displayName": "Wise Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "wiseApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Wise/WiseTrigger.node.js"
+  },
+  {
+    "name": "wooCommerceTrigger",
+    "displayName": "WooCommerce Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "wooCommerceApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 1,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/WooCommerce/WooCommerceTrigger.node.js"
+  },
+  {
+    "name": "workableTrigger",
+    "displayName": "Workable Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "workableApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Workable/WorkableTrigger.node.js"
+  },
+  {
+    "name": "workflowTrigger",
+    "displayName": "Workflow Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [],
+    "capabilities": [
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/WorkflowTrigger/WorkflowTrigger.node.js"
+  },
+  {
+    "name": "wufooTrigger",
+    "displayName": "Wufoo Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "wufooApi"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 2,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Wufoo/WufooTrigger.node.js"
+  },
+  {
+    "name": "zendeskTrigger",
+    "displayName": "Zendesk Trigger",
+    "groups": [
+      "trigger"
+    ],
+    "inputs": [],
+    "outputs": [
+      "main"
+    ],
+    "credentials": [
+      "zendeskApi",
+      "zendeskOAuth2Api"
+    ],
+    "capabilities": [
+      "api-integration",
+      "event-driven"
+    ],
+    "parametersCount": 4,
+    "resources": [],
+    "sourceFile": "n8n-nodes-base/dist/nodes/Zendesk/ZendeskTrigger.node.js"
+  }
+]

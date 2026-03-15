@@ -1,0 +1,26 @@
+# Панель "Все датчики температуры" для Merscom Assistant (Home Assistant)
+# Добавьте как новую вкладку в дашборд
+#
+# Требования: HACS + lovelace-auto-entities
+# Установка: HACS → Frontend → lovelace-auto-entities
+
+title: Температура
+path: temperature
+icon: mdi:thermometer
+panel: false
+cards:
+  - type: custom:auto-entities
+    filter:
+      include:
+        - domain: sensor
+          attributes:
+            device_class: temperature
+      exclude: []
+    card:
+      type: entities
+      title: Все датчики температуры
+      icon: mdi:thermometer
+      show_header_toggle: false
+    sort:
+      method: name
+      numeric: true

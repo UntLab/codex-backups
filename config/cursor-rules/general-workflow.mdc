@@ -1,0 +1,34 @@
+---
+description: General coding workflow and project conventions
+alwaysApply: true
+---
+
+# General Workflow
+
+## Project Structure
+- All projects live in `~/Cursor/projects/` (frontend, backend, fullstack, automation, etc.)
+- Shared configs in `~/Cursor/shared/configs/`
+- N8N workflow exports in `~/Cursor/projects/n8n-workflows/`
+- N8N config (URL + API key) at `~/Cursor/shared/configs/n8n-config.json`
+
+## LinkedIn
+- Work ONLY with the **UntLab** LinkedIn account (organization ID: 111598449, credential: "UntLab LinkedIn account")
+- NEVER touch any other LinkedIn account (Najaf or any other)
+- N8N workflow for UntLab: `LinkedID_UntLab_autopublisher` (ID: HwO0UZOsWuBuOEhZ2UHR5)
+
+## Code Standards
+- Write clean, readable code with meaningful variable names
+- Functions should do one thing and do it well
+- Handle errors properly — never silently swallow exceptions
+- Use environment variables for secrets (never hardcode)
+- Create `.env.example` to document required env vars
+
+## Git
+- Use conventional commits: `type(scope): description`
+- Create `.gitignore` before first commit
+- Sync finished projects to GitHub: `gh repo create name --private --source=. --push`
+
+## When Creating New Projects
+- Always scaffold in the correct `~/Cursor/projects/` subfolder
+- Initialize git immediately
+- Add project-specific `.cursor/rules/` if needed

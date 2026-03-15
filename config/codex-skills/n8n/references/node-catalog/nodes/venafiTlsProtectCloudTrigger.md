@@ -1,0 +1,73 @@
+---
+title: "Venafi TLS Protect Cloud Trigger"
+description: "Starts the workflow when Venafi events occur"
+---
+
+# Venafi TLS Protect Cloud Trigger
+**Node Type:** nodes-base.venafiTlsProtectCloudTrigger
+
+## Description
+Starts the workflow when Venafi events occur
+
+## Schema
+```json
+{
+  "displayName": "Venafi TLS Protect Cloud Trigger",
+  "name": "venafiTlsProtectCloudTrigger",
+  "icon": "file:../venafi.svg",
+  "group": [
+    "trigger"
+  ],
+  "version": 1,
+  "description": "Starts the workflow when Venafi events occur",
+  "defaults": {
+    "name": "Venafi TLS Protect Cloud Trigger"
+  },
+  "credentials": [
+    {
+      "name": "venafiTlsProtectCloudApi",
+      "required": true
+    }
+  ],
+  "webhooks": [
+    {
+      "name": "default",
+      "httpMethod": "POST",
+      "responseMode": "onReceived",
+      "path": "webhook"
+    }
+  ],
+  "inputs": [],
+  "outputs": [
+    "main"
+  ],
+  "properties": [
+    {
+      "displayName": "Resource",
+      "name": "resource",
+      "type": "options",
+      "noDataExpression": true,
+      "typeOptions": {
+        "loadOptionsMethod": "getActivityTypes"
+      },
+      "required": true,
+      "default": [],
+      "description": "Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>. Choose from the list, or specify IDs using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>. Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>."
+    },
+    {
+      "displayName": "Trigger On",
+      "name": "triggerOn",
+      "type": "multiOptions",
+      "typeOptions": {
+        "loadOptionsMethod": "getActivitySubTypes",
+        "loadOptionsDependsOn": [
+          "resource"
+        ]
+      },
+      "required": true,
+      "default": [],
+      "description": "Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>. Choose from the list, or specify IDs using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>. Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>. Choose from the list, or specify IDs using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>."
+    }
+  ]
+}
+```

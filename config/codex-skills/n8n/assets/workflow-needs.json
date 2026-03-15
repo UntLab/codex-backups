@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "generatedAt": "2026-02-16T09:09:56.168672+00:00",
+  "description": "Workflow intent map to query node-catalog indexes",
+  "useCases": [
+    {
+      "id": "saas-api-sync",
+      "title": "Sync SaaS API data into storage",
+      "needs": [
+        "call external APIs",
+        "transform payloads",
+        "store results",
+        "run on schedule"
+      ],
+      "capabilitiesAny": [
+        "api-integration",
+        "data-transformation",
+        "data-storage",
+        "scheduling"
+      ],
+      "groupsAny": [
+        "output",
+        "transform",
+        "schedule"
+      ],
+      "starterNodes": [
+        "httpRequest",
+        "set",
+        "if",
+        "merge",
+        "scheduleTrigger"
+      ],
+      "queryHints": [
+        "jq -r '.\"api-integration\"[]' docs/reference/indexes/nodes-by-capability.json",
+        "jq -r '.[].name' docs/reference/indexes/schedule-nodes.json"
+      ]
+    },
+    {
+      "id": "event-driven-notifications",
+      "title": "Event-driven notifications and routing",
+      "needs": [
+        "receive event",
+        "route by conditions",
+        "notify channels"
+      ],
+      "capabilitiesAny": [
+        "event-driven",
+        "notifications-and-messaging"
+      ],
+      "groupsAny": [
+        "trigger",
+        "transform",
+        "output"
+      ],
+      "starterNodes": [
+        "webhook",
+        "if",
+        "switch",
+        "slack",
+        "twilio"
+      ],
+      "queryHints": [
+        "jq -r '.[].name' docs/reference/indexes/trigger-nodes.json",
+        "jq -r '.\"notifications-and-messaging\"[]' docs/reference/indexes/nodes-by-capability.json"
+      ]
+    },
+    {
+      "id": "lead-enrichment-pipeline",
+      "title": "Lead enrichment and CRM update pipeline",
+      "needs": [
+        "collect lead source",
+        "enrich records",
+        "upsert CRM"
+      ],
+      "capabilitiesAny": [
+        "sales-marketing-ecommerce",
+        "api-integration",
+        "data-transformation"
+      ],
+      "groupsAny": [
+        "output",
+        "transform"
+      ],
+      "starterNodes": [
+        "httpRequest",
+        "hubspot",
+        "salesforce",
+        "pipedrive",
+        "set"
+      ],
+      "queryHints": [
+        "jq -r '.\"sales-marketing-ecommerce\"[]' docs/reference/indexes/nodes-by-capability.json"
+      ]
+    },
+    {
+      "id": "ai-content-workflow",
+      "title": "AI content generation or analysis workflow",
+      "needs": [
+        "prepare context",
+        "call LLM",
+        "validate output",
+        "publish/send"
+      ],
+      "capabilitiesAny": [
+        "ai-automation",
+        "documents-and-files",
+        "api-integration"
+      ],
+      "groupsAny": [
+        "transform",
+        "output"
+      ],
+      "starterNodes": [
+        "openAi",
+        "httpRequest",
+        "code",
+        "set"
+      ],
+      "queryHints": [
+        "jq -r '.\"ai-automation\"[]' docs/reference/indexes/nodes-by-capability.json"
+      ]
+    },
+    {
+      "id": "file-processing-batch",
+      "title": "File ingestion and processing batch",
+      "needs": [
+        "read files",
+        "transform/parse",
+        "write outputs"
+      ],
+      "capabilitiesAny": [
+        "documents-and-files",
+        "data-transformation",
+        "data-storage"
+      ],
+      "groupsAny": [
+        "input",
+        "transform",
+        "output"
+      ],
+      "starterNodes": [
+        "readBinaryFile",
+        "extractFromFile",
+        "convertToFile",
+        "s3",
+        "googleDrive"
+      ],
+      "queryHints": [
+        "jq -r '.\"documents-and-files\"[]' docs/reference/indexes/nodes-by-capability.json"
+      ]
+    }
+  ]
+}

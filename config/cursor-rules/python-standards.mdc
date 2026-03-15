@@ -1,0 +1,50 @@
+---
+description: Python coding standards
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# Python Standards
+
+## Style
+- Python 3.10+ features (match/case, union types with `|`, etc.)
+- Type hints for all function signatures
+- f-strings for string formatting
+- Pathlib over os.path for file operations
+- Dataclasses or Pydantic models for structured data
+
+## Project Setup
+- Use virtual environments: `python -m venv venv`
+- Maintain `requirements.txt` or `pyproject.toml`
+- Entry point in `main.py` or `app.py`
+
+## Error Handling
+```python
+try:
+    result = await fetch_data()
+except HTTPError as e:
+    logger.error(f"HTTP error: {e.status_code} - {e.detail}")
+    raise AppError(f"Failed to fetch: {e}") from e
+```
+
+## FastAPI Specifics (when applicable)
+- Pydantic models for request/response schemas
+- Dependency injection for shared resources
+- Async endpoints for I/O operations
+- Proper HTTP status codes and error responses
+- CORS middleware configured for frontend origins
+
+## Structure
+```
+project/
+  app/
+    __init__.py
+    main.py          # FastAPI app entry
+    routers/         # Route handlers
+    models/          # Pydantic/DB models
+    services/        # Business logic
+    utils/           # Helpers
+  tests/
+  requirements.txt
+  .env.example
+```

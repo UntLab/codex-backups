@@ -1,0 +1,85 @@
+---
+title: "Autopilot Trigger"
+description: "Handle Autopilot events via webhooks"
+---
+
+# Autopilot Trigger
+**Node Type:** nodes-base.autopilotTrigger
+
+## Description
+Handle Autopilot events via webhooks
+
+## Schema
+```json
+{
+  "displayName": "Autopilot Trigger",
+  "name": "autopilotTrigger",
+  "icon": "file:autopilot.svg",
+  "group": [
+    "trigger"
+  ],
+  "version": 1,
+  "subtitle": "={{$parameter[\"event\"]}}",
+  "description": "Handle Autopilot events via webhooks",
+  "defaults": {
+    "name": "Autopilot Trigger"
+  },
+  "inputs": [],
+  "outputs": [
+    "main"
+  ],
+  "credentials": [
+    {
+      "name": "autopilotApi",
+      "required": true
+    }
+  ],
+  "webhooks": [
+    {
+      "name": "default",
+      "httpMethod": "POST",
+      "responseMode": "onReceived",
+      "path": "webhook"
+    }
+  ],
+  "properties": [
+    {
+      "displayName": "Event",
+      "name": "event",
+      "type": "options",
+      "required": true,
+      "default": "",
+      "options": [
+        {
+          "name": "Contact Added",
+          "value": "contactAdded"
+        },
+        {
+          "name": "Contact Added To List",
+          "value": "contactAddedToList"
+        },
+        {
+          "name": "Contact Entered Segment",
+          "value": "contactEnteredSegment"
+        },
+        {
+          "name": "Contact Left Segment",
+          "value": "contactLeftSegment"
+        },
+        {
+          "name": "Contact Removed From List",
+          "value": "contactRemovedFromList"
+        },
+        {
+          "name": "Contact Unsubscribed",
+          "value": "contactUnsubscribed"
+        },
+        {
+          "name": "Contact Updated",
+          "value": "contactUpdated"
+        }
+      ]
+    }
+  ]
+}
+```

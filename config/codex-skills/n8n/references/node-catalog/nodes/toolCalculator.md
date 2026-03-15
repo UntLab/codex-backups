@@ -1,0 +1,66 @@
+---
+title: "Calculator"
+description: "Make it easier for AI agents to perform arithmetic"
+---
+
+# Calculator
+**Node Type:** nodes-langchain.toolCalculator
+
+## Description
+Make it easier for AI agents to perform arithmetic
+
+## Schema
+```json
+{
+  "displayName": "Calculator",
+  "name": "toolCalculator",
+  "icon": "fa:calculator",
+  "iconColor": "black",
+  "group": [
+    "transform"
+  ],
+  "version": 1,
+  "description": "Make it easier for AI agents to perform arithmetic",
+  "defaults": {
+    "name": "Calculator"
+  },
+  "codex": {
+    "categories": [
+      "AI"
+    ],
+    "subcategories": {
+      "AI": [
+        "Tools"
+      ],
+      "Tools": [
+        "Other Tools"
+      ]
+    },
+    "resources": {
+      "primaryDocumentation": [
+        {
+          "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.toolcalculator/"
+        }
+      ]
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    "ai_tool"
+  ],
+  "outputNames": [
+    "Tool"
+  ],
+  "properties": [
+    {
+      "displayName": "This node must be connected to an AI agent. <a data-action='openSelectiveNodeCreator' data-action-parameter-creatorview='AI'>Insert one</a>",
+      "name": "notice",
+      "type": "notice",
+      "default": "",
+      "typeOptions": {
+        "containerClass": "ndv-connection-hint-notice"
+      }
+    }
+  ]
+}
+```

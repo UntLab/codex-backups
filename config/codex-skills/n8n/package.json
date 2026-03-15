@@ -1,0 +1,37 @@
+{
+    "name": "n8n-skill",
+    "version": "1.0.0",
+    "description": "The Open Standard n8n Skill Knowledge Base for AI Agents",
+    "private": true,
+    "scripts": {
+        "dev": "npx live-server docs",
+        "serve": "npx serve docs"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/xlogix/n8n-skill.git"
+    },
+    "keywords": [
+        "n8n",
+        "ai",
+        "agent",
+        "skill",
+        "mcp",
+        "knowledge-base",
+        "workflow",
+        "automation",
+        "llm",
+        "chatgpt",
+        "claude"
+    ],
+    "author": "Abhishek Uniyal",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/xlogix/n8n-skill/issues"
+    },
+    "homepage": "https://xlogix.github.io/n8n-skill",
+    "devDependencies": {
+        "n8n-core": "^1.122.15",
+        "n8n-workflow": "^2.9.0"
+    }
+}

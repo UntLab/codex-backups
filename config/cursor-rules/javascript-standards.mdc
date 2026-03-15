@@ -1,0 +1,37 @@
+---
+description: JavaScript and TypeScript coding standards
+globs: "**/*.{js,jsx,ts,tsx,mjs,cjs}"
+alwaysApply: false
+---
+
+# JavaScript / TypeScript Standards
+
+## Style
+- Use `const` by default, `let` when reassignment is needed, never `var`
+- Arrow functions for callbacks and short functions
+- Template literals over string concatenation
+- Destructuring for objects and arrays
+- Optional chaining (`?.`) and nullish coalescing (`??`)
+- Async/await over raw promises; handle errors with try/catch
+
+## Modules
+- ES modules (`import`/`export`) preferred over CommonJS
+- Named exports preferred over default exports
+- Group imports: external libs, then internal modules, then relative paths
+
+## Error Handling
+```javascript
+// Always catch and handle meaningfully
+try {
+  const data = await fetchData();
+} catch (error) {
+  console.error('Failed to fetch data:', error.message);
+  throw new AppError('Data fetch failed', { cause: error });
+}
+```
+
+## React Specifics (when applicable)
+- Functional components only
+- Custom hooks for reusable logic (prefix with `use`)
+- Keep components focused — split large components
+- Use Tailwind CSS or CSS Modules for styling

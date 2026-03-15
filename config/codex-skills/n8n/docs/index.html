@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n8n Skill - Open Standard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">n8n skill</div>
+        <a href="https://github.com/xlogix/n8n-skill" class="btn btn-black">GITHUB -></a>
+    </nav>
+
+    <header class="hero">
+        <h1 class="massive-title">n8n skill</h1>
+        
+        <p style="font-size: 1.5rem; font-weight: 800; max-width: 800px; margin-bottom: 40px; text-transform: uppercase;">A native skill you add to Codex or Antigravity to enable them to build perfect, bug-free n8n workflows.</p>
+        
+        <div class="tilted-box tilt-left bg-light-green">
+            <h2>THE INSTRUCTION MANUAL FOR AI AGENTS.</h2>
+        </div>
+        
+        <div class="tilted-box tilt-right bg-dark-green text-light">
+            <h2>NO GUESSING. NO BROKEN CODE.</h2>
+        </div>
+        
+        <div class="action-grid">
+            <div class="brutal-box bg-white text-center">
+                <h2>500+</h2>
+                <p>N8N NODES</p>
+            </div>
+            <a href="#integrations" class="brutal-box bg-black text-white text-center hover-lift">
+                <h2>START ZERO FRICTION SETUP</h2>
+                <p>-></p>
+            </a>
+        </div>
+    </header>
+
+    <main class="container" id="integrations">
+        
+        <div class="brutal-box section-title bg-yellow">
+            <h2>HOW TO ADD THIS SKILL TO YOUR AI</h2>
+        </div>
+
+        <div class="brutal-box">
+            <h3>Step 0: Get the Instruction Manual</h3>
+            <p>Before you add this skill to your AI, you need to save it to your computer.</p>
+            <ol style="margin-top: 15px; margin-bottom: 0; padding-left: 20px; font-weight: 500; font-size: 1.1rem; line-height: 1.6;">
+                <li>Scroll to the top of this GitHub page and click the green <strong>"<> Code"</strong> button.</li>
+                <li>Click <strong>"Download ZIP"</strong>.</li>
+                <li>Find the ZIP file in your <code>Downloads</code> folder and double-click it to unzip it. You should now have a folder called <code>n8n-skill-main</code>.</li>
+            </ol>
+        </div>
+
+        <div class="brutal-box">
+            <h3>1. For IDEs (Cursor / Windsurf)</h3>
+            <p>Drag the <code>.cursorrules</code> file from the unzipped <code>n8n-skill-main</code> folder and drop it directly into your own project folder. Your IDE will now read the actual node manuals before writing any code.</p>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyText('cursor-code')">COPY</button>
+                <pre><code id="cursor-code">You are an expert n8n workflow builder and AI agent.
+When helping the user build workflows:
+1. DO NOT guess how the n8n nodes work.
+2. ALWAYS read the knowledge base in this repository first.
+3. START by reading `SKILL.md` and `assets/workflow-needs.json` to understand what I want.
+4. THEN look for the right nodes in `references/indexes/nodes-by-capability.json`.
+5. FINALLY, read the exact instructions for that node in `references/node-catalog/nodes/<nodeName>.md`.
+6. Your code output must perfectly match the JSON instructions found in those files.</code></pre>
+            </div>
+        </div>
+
+        <div class="brutal-box">
+            <h3>2. For Claude Desktop App</h3>
+            <p>Add this exact text to your Claude MCP config. <em>(Make sure to replace <code>your-username</code> with your actual computer username!)</em></p>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyText('mcp-code')">COPY</button>
+                <pre><code id="mcp-code">{
+  "mcpServers": {
+    "n8n-skill": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/your-username/Downloads/n8n-skill-main/references"
+      ]
+    }
+  }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="brutal-box">
+            <h3>3. For Autonomous Agents (Codex / Antigravity)</h3>
+            <p>Give your coding agent this explicit text command to force it to read the manual before it builds anything.</p>
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyText('agent-code')">COPY</button>
+                <pre><code id="agent-code">I want you to use the `n8n-skill-main` folder located in my Downloads directory as your main knowledge base.
+
+Please read `SKILL.md` to understand how to navigate the documentation, and then use your file reading tools to read the actual node instructions in `references/node-catalog/nodes/` before you write any code for me. Do not guess how n8n works.</code></pre>
+            </div>
+        </div>
+
+        <div class="brutal-box bg-light-green ai-demo">
+            <h3>AI PLAYGROUND SIMULATION</h3>
+            <div class="chat-mockup">
+                <div class="chat-bubble user-bubble">
+                    <p>Build a workflow that kicks off via Webhook and alerts Slack.</p>
+                </div>
+                <div class="chat-bubble ai-bubble">
+                    <p class="thought-process">[SEARCHING KNOWLEDGE BASE FOR "WEBHOOK"...]<br>[READING SLACK NODE SCHEMAS...]</p>
+                    <p>Workflow constructed successfully strictly following n8n specs.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="brutal-footer">
+        <h2>BUILT FOR AI AGENTS. BY ABHISHEK UNIYAL (XLOGIX).</h2>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

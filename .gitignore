@@ -1,0 +1,13 @@
+# Root backup repo — ignore OS and IDE cruft
+.DS_Store
+Thumbs.db
+*.log
+
+# n8n-prompt-manager: exclude large binaries (kept in sync-sources)
+n8n-prompt-manager/*.zip
+n8n-prompt-manager/*.app
+n8n-prompt-manager/**/*.zip
+n8n-prompt-manager/**/*.app
+n8n-prompt-manager/**/__pycache__
+n8n-prompt-manager/app.log
+n8n-prompt-manager/windows-package

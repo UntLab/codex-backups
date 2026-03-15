@@ -1,0 +1,7 @@
+=={{ $('AI Agent1').item.json.output.post_english }}
+
+━━━━━━━━━━━━━━━━
+
+🇦🇿 {{ $('AI Agent1').item.json.output.post_azerbaijani }}
+
+#UntLab #AI #TechTrends #Baku #Innovation

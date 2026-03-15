@@ -1,0 +1,19 @@
+# Вариант без HACS — замените entity_id на ваши датчики
+# Список: Настройки → Устройства и сущности → фильтр по "температура"
+
+title: Температура
+path: temperature
+icon: mdi:thermometer
+cards:
+  - type: entities
+    title: Все датчики температуры
+    icon: mdi:thermometer
+    entities:
+      - entity: sensor.placeholder_1
+        name: Датчик 1
+      - entity: sensor.placeholder_2
+        name: Датчик 2
+      # Добавьте свои entity_id сюда, например:
+      # - sensor.living_room_temperature
+      # - sensor.bedroom_temperature
+      # - sensor.outside_temperature

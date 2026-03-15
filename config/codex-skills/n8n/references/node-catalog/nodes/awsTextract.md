@@ -1,0 +1,119 @@
+---
+title: "AWS Textract"
+description: "Sends data to Amazon Textract"
+---
+
+# AWS Textract
+**Node Type:** nodes-base.awsTextract
+
+## Description
+Sends data to Amazon Textract
+
+## Schema
+```json
+{
+  "displayName": "AWS Textract",
+  "name": "awsTextract",
+  "icon": "file:textract.svg",
+  "group": [
+    "output"
+  ],
+  "version": 1,
+  "subtitle": "={{$parameter[\"operation\"]}}",
+  "description": "Sends data to Amazon Textract",
+  "defaults": {
+    "name": "AWS Textract"
+  },
+  "usableAsTool": true,
+  "inputs": [
+    "main"
+  ],
+  "outputs": [
+    "main"
+  ],
+  "credentials": [
+    {
+      "name": "aws",
+      "required": true,
+      "displayOptions": {
+        "show": {
+          "authentication": [
+            "iam"
+          ]
+        }
+      }
+    },
+    {
+      "name": "awsAssumeRole",
+      "required": true,
+      "displayOptions": {
+        "show": {
+          "authentication": [
+            "assumeRole"
+          ]
+        }
+      }
+    }
+  ],
+  "properties": [
+    {
+      "displayName": "Authentication",
+      "name": "authentication",
+      "type": "options",
+      "options": [
+        {
+          "name": "AWS (IAM)",
+          "value": "iam"
+        },
+        {
+          "name": "AWS (Assume Role)",
+          "value": "assumeRole"
+        }
+      ],
+      "default": "iam"
+    },
+    {
+      "displayName": "Operation",
+      "name": "operation",
+      "type": "options",
+      "noDataExpression": true,
+      "options": [
+        {
+          "name": "Analyze Receipt or Invoice",
+          "value": "analyzeExpense"
+        }
+      ],
+      "default": "analyzeExpense"
+    },
+    {
+      "displayName": "Input Data Field Name",
+      "name": "binaryPropertyName",
+      "type": "string",
+      "default": "data",
+      "displayOptions": {
+        "show": {
+          "operation": [
+            "analyzeExpense"
+          ]
+        }
+      },
+      "required": true,
+      "description": "The name of the input field containing the binary file data to be uploaded. Supported file types: PNG, JPEG."
+    },
+    {
+      "displayName": "Simplify",
+      "name": "simple",
+      "type": "boolean",
+      "displayOptions": {
+        "show": {
+          "operation": [
+            "analyzeExpense"
+          ]
+        }
+      },
+      "default": true,
+      "description": "Whether to return a simplified version of the response instead of the raw data"
+    }
+  ]
+}
+```

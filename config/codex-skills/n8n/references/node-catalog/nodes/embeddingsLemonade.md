@@ -1,0 +1,119 @@
+---
+title: "Embeddings Lemonade"
+description: "Use Lemonade Embeddings"
+---
+
+# Embeddings Lemonade
+**Node Type:** nodes-langchain.embeddingsLemonade
+
+## Description
+Use Lemonade Embeddings
+
+## Schema
+```json
+{
+  "displayName": "Embeddings Lemonade",
+  "name": "embeddingsLemonade",
+  "icon": "file:lemonade.svg",
+  "group": [
+    "transform"
+  ],
+  "version": 1,
+  "description": "Use Lemonade Embeddings",
+  "defaults": {
+    "name": "Embeddings Lemonade"
+  },
+  "credentials": [
+    {
+      "name": "lemonadeApi",
+      "required": true
+    }
+  ],
+  "requestDefaults": {
+    "ignoreHttpStatusErrors": true,
+    "baseURL": "={{ $credentials.baseUrl.replace(new RegExp(\"/$\"), \"\") }}"
+  },
+  "codex": {
+    "categories": [
+      "AI"
+    ],
+    "subcategories": {
+      "AI": [
+        "Embeddings"
+      ]
+    },
+    "resources": {
+      "primaryDocumentation": [
+        {
+          "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.embeddingslemonade/"
+        }
+      ]
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    "ai_embedding"
+  ],
+  "outputNames": [
+    "Embeddings"
+  ],
+  "properties": [
+    {
+      "displayName": "This node must be connected to a vector store. <a data-action='openSelectiveNodeCreator' data-action-parameter-connectiontype='ai_vectorStore'>Insert one</a>",
+      "name": "notice",
+      "type": "notice",
+      "default": "",
+      "typeOptions": {
+        "containerClass": "ndv-connection-hint-notice"
+      }
+    },
+    {
+      "displayName": "Model",
+      "name": "model",
+      "type": "options",
+      "default": "",
+      "description": "The model which will generate the completion. Models are loaded and managed through the Lemonade server.",
+      "typeOptions": {
+        "loadOptions": {
+          "routing": {
+            "request": {
+              "method": "GET",
+              "url": "/models"
+            },
+            "output": {
+              "postReceive": [
+                {
+                  "type": "rootProperty",
+                  "properties": {
+                    "property": "data"
+                  }
+                },
+                {
+                  "type": "setKeyValue",
+                  "properties": {
+                    "name": "={{$responseItem.id}}",
+                    "value": "={{$responseItem.id}}"
+                  }
+                },
+                {
+                  "type": "sort",
+                  "properties": {
+                    "key": "name"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "routing": {
+        "send": {
+          "type": "body",
+          "property": "model"
+        }
+      },
+      "required": true
+    }
+  ]
+}
+```

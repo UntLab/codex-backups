@@ -1,0 +1,53 @@
+---
+title: "Toggl Trigger"
+description: "Starts the workflow when Toggl events occur"
+---
+
+# Toggl Trigger
+**Node Type:** nodes-base.togglTrigger
+
+## Description
+Starts the workflow when Toggl events occur
+
+## Schema
+```json
+{
+  "displayName": "Toggl Trigger",
+  "name": "togglTrigger",
+  "icon": "file:toggl.png",
+  "group": [
+    "trigger"
+  ],
+  "version": 1,
+  "description": "Starts the workflow when Toggl events occur",
+  "defaults": {
+    "name": "Toggl Trigger"
+  },
+  "credentials": [
+    {
+      "name": "togglApi",
+      "required": true
+    }
+  ],
+  "polling": true,
+  "inputs": [],
+  "outputs": [
+    "main"
+  ],
+  "properties": [
+    {
+      "displayName": "Event",
+      "name": "event",
+      "type": "options",
+      "options": [
+        {
+          "name": "New Time Entry",
+          "value": "newTimeEntry"
+        }
+      ],
+      "required": true,
+      "default": "newTimeEntry"
+    }
+  ]
+}
+```

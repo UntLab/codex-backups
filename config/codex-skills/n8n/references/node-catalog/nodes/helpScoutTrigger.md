@@ -1,0 +1,104 @@
+---
+title: "Help Scout Trigger"
+description: "Starts the workflow when Help Scout events occur"
+---
+
+# Help Scout Trigger
+**Node Type:** nodes-base.helpScoutTrigger
+
+## Description
+Starts the workflow when Help Scout events occur
+
+## Schema
+```json
+{
+  "displayName": "Help Scout Trigger",
+  "name": "helpScoutTrigger",
+  "icon": "file:helpScout.svg",
+  "group": [
+    "trigger"
+  ],
+  "version": 1,
+  "description": "Starts the workflow when Help Scout events occur",
+  "defaults": {
+    "name": "Help Scout Trigger"
+  },
+  "inputs": [],
+  "outputs": [
+    "main"
+  ],
+  "credentials": [
+    {
+      "name": "helpScoutOAuth2Api",
+      "required": true
+    }
+  ],
+  "webhooks": [
+    {
+      "name": "default",
+      "httpMethod": "POST",
+      "responseMode": "onReceived",
+      "path": "webhook"
+    }
+  ],
+  "properties": [
+    {
+      "displayName": "Events",
+      "name": "events",
+      "type": "multiOptions",
+      "options": [
+        {
+          "name": "Conversation - Assigned",
+          "value": "convo.assigned"
+        },
+        {
+          "name": "Conversation - Created",
+          "value": "convo.created"
+        },
+        {
+          "name": "Conversation - Deleted",
+          "value": "convo.deleted"
+        },
+        {
+          "name": "Conversation - Merged",
+          "value": "convo.merged"
+        },
+        {
+          "name": "Conversation - Moved",
+          "value": "convo.moved"
+        },
+        {
+          "name": "Conversation - Status",
+          "value": "convo.status"
+        },
+        {
+          "name": "Conversation - Tags",
+          "value": "convo.tags"
+        },
+        {
+          "name": "Conversation Agent Reply - Created",
+          "value": "convo.agent.reply.created"
+        },
+        {
+          "name": "Conversation Customer Reply - Created",
+          "value": "convo.customer.reply.created"
+        },
+        {
+          "name": "Conversation Note - Created",
+          "value": "convo.note.created"
+        },
+        {
+          "name": "Customer - Created",
+          "value": "customer.created"
+        },
+        {
+          "name": "Rating - Received",
+          "value": "satisfaction.ratings"
+        }
+      ],
+      "default": [],
+      "required": true
+    }
+  ]
+}
+```

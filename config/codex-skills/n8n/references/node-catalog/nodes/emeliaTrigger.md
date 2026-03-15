@@ -1,0 +1,93 @@
+---
+title: "Emelia Trigger"
+description: "Handle Emelia campaign activity events via webhooks"
+---
+
+# Emelia Trigger
+**Node Type:** nodes-base.emeliaTrigger
+
+## Description
+Handle Emelia campaign activity events via webhooks
+
+## Schema
+```json
+{
+  "displayName": "Emelia Trigger",
+  "name": "emeliaTrigger",
+  "icon": "file:emelia.svg",
+  "subtitle": "={{$parameter[\"operation\"] + \": \" + $parameter[\"resource\"]}}",
+  "group": [
+    "trigger"
+  ],
+  "version": 1,
+  "description": "Handle Emelia campaign activity events via webhooks",
+  "defaults": {
+    "name": "Emelia Trigger"
+  },
+  "inputs": [],
+  "outputs": [
+    "main"
+  ],
+  "credentials": [
+    {
+      "name": "emeliaApi",
+      "required": true,
+      "testedBy": "emeliaApiTest"
+    }
+  ],
+  "webhooks": [
+    {
+      "name": "default",
+      "httpMethod": "POST",
+      "responseMode": "onReceived",
+      "path": "webhook"
+    }
+  ],
+  "properties": [
+    {
+      "displayName": "Campaign Name or ID",
+      "name": "campaignId",
+      "type": "options",
+      "description": "Choose from the list, or specify an ID using an <a href=\"https://docs.n8n.io/code/expressions/\">expression</a>",
+      "typeOptions": {
+        "loadOptionsMethod": "getCampaigns"
+      },
+      "required": true,
+      "default": ""
+    },
+    {
+      "displayName": "Events",
+      "name": "events",
+      "type": "multiOptions",
+      "required": true,
+      "default": [],
+      "options": [
+        {
+          "name": "Email Bounced",
+          "value": "bounced"
+        },
+        {
+          "name": "Email Opened",
+          "value": "opened"
+        },
+        {
+          "name": "Email Replied",
+          "value": "replied"
+        },
+        {
+          "name": "Email Sent",
+          "value": "sent"
+        },
+        {
+          "name": "Link Clicked",
+          "value": "clicked"
+        },
+        {
+          "name": "Unsubscribed Contact",
+          "value": "unsubscribed"
+        }
+      ]
+    }
+  ]
+}
+```

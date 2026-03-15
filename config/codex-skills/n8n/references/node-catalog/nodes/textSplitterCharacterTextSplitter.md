@@ -1,0 +1,83 @@
+---
+title: "Character Text Splitter"
+description: "Split text into chunks by characters"
+---
+
+# Character Text Splitter
+**Node Type:** nodes-langchain.textSplitterCharacterTextSplitter
+
+## Description
+Split text into chunks by characters
+
+## Schema
+```json
+{
+  "displayName": "Character Text Splitter",
+  "name": "textSplitterCharacterTextSplitter",
+  "icon": "fa:grip-lines-vertical",
+  "iconColor": "black",
+  "group": [
+    "transform"
+  ],
+  "version": 1,
+  "description": "Split text into chunks by characters",
+  "defaults": {
+    "name": "Character Text Splitter"
+  },
+  "codex": {
+    "categories": [
+      "AI"
+    ],
+    "subcategories": {
+      "AI": [
+        "Text Splitters"
+      ]
+    },
+    "resources": {
+      "primaryDocumentation": [
+        {
+          "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.textsplittercharactertextsplitter/"
+        }
+      ]
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    "ai_textSplitter"
+  ],
+  "outputNames": [
+    "Text Splitter"
+  ],
+  "properties": [
+    {
+      "displayName": "This node must be connected to a document loader. <a data-action='openSelectiveNodeCreator' data-action-parameter-connectiontype='ai_document'>Insert one</a>",
+      "name": "notice",
+      "type": "notice",
+      "default": "",
+      "typeOptions": {
+        "containerClass": "ndv-connection-hint-notice"
+      }
+    },
+    {
+      "displayName": "Separator",
+      "name": "separator",
+      "type": "string",
+      "default": ""
+    },
+    {
+      "displayName": "Chunk Size",
+      "name": "chunkSize",
+      "type": "number",
+      "default": 1000,
+      "description": "Maximum number of characters per chunk"
+    },
+    {
+      "displayName": "Chunk Overlap",
+      "name": "chunkOverlap",
+      "type": "number",
+      "default": 0,
+      "description": "Number of characters shared between consecutive chunks to preserve context"
+    }
+  ]
+}
+```

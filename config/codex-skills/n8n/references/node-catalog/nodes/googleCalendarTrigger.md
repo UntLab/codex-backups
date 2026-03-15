@@ -1,0 +1,128 @@
+---
+title: "Google Calendar Trigger"
+description: "Starts the workflow when Google Calendar events occur"
+---
+
+# Google Calendar Trigger
+**Node Type:** nodes-base.googleCalendarTrigger
+
+## Description
+Starts the workflow when Google Calendar events occur
+
+## Schema
+```json
+{
+  "displayName": "Google Calendar Trigger",
+  "name": "googleCalendarTrigger",
+  "icon": "file:googleCalendar.svg",
+  "group": [
+    "trigger"
+  ],
+  "version": 1,
+  "subtitle": "={{$parameter[\"triggerOn\"]}}",
+  "description": "Starts the workflow when Google Calendar events occur",
+  "defaults": {
+    "name": "Google Calendar Trigger"
+  },
+  "inputs": [],
+  "outputs": [
+    "main"
+  ],
+  "credentials": [
+    {
+      "name": "googleCalendarOAuth2Api",
+      "required": true
+    }
+  ],
+  "polling": true,
+  "properties": [
+    {
+      "displayName": "Calendar",
+      "name": "calendarId",
+      "type": "resourceLocator",
+      "default": {
+        "mode": "list",
+        "value": ""
+      },
+      "required": true,
+      "description": "Google Calendar to operate on",
+      "modes": [
+        {
+          "displayName": "Calendar",
+          "name": "list",
+          "type": "list",
+          "placeholder": "Select a Calendar...",
+          "typeOptions": {
+            "searchListMethod": "getCalendars",
+            "searchable": true
+          }
+        },
+        {
+          "displayName": "ID",
+          "name": "id",
+          "type": "string",
+          "validation": [
+            {
+              "type": "regex",
+              "properties": {
+                "regex": "(^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*(?:[ \t]+)*$)",
+                "errorMessage": "Not a valid Google Calendar ID"
+              }
+            }
+          ],
+          "extractValue": {
+            "type": "regex",
+            "regex": "(^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*)"
+          },
+          "placeholder": "name@google.com"
+        }
+      ]
+    },
+    {
+      "displayName": "Trigger On",
+      "name": "triggerOn",
+      "type": "options",
+      "required": true,
+      "default": "",
+      "options": [
+        {
+          "name": "Event Cancelled",
+          "value": "eventCancelled"
+        },
+        {
+          "name": "Event Created",
+          "value": "eventCreated"
+        },
+        {
+          "name": "Event Ended",
+          "value": "eventEnded"
+        },
+        {
+          "name": "Event Started",
+          "value": "eventStarted"
+        },
+        {
+          "name": "Event Updated",
+          "value": "eventUpdated"
+        }
+      ]
+    },
+    {
+      "displayName": "Options",
+      "name": "options",
+      "type": "collection",
+      "placeholder": "Add option",
+      "default": {},
+      "options": [
+        {
+          "displayName": "Match Term",
+          "name": "matchTerm",
+          "type": "string",
+          "default": "",
+          "description": "Free text search terms to filter events that match these terms in any field, except for extended properties"
+        }
+      ]
+    }
+  ]
+}
+```

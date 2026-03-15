@@ -1,0 +1,176 @@
+---
+title: "Simple Memory"
+description: "Stores in n8n memory, so no credentials required"
+---
+
+# Simple Memory
+**Node Type:** nodes-langchain.memoryBufferWindow
+
+## Description
+Stores in n8n memory, so no credentials required
+
+## Schema
+```json
+{
+  "displayName": "Simple Memory",
+  "name": "memoryBufferWindow",
+  "icon": "fa:database",
+  "iconColor": "black",
+  "group": [
+    "transform"
+  ],
+  "version": [
+    1,
+    1.1,
+    1.2,
+    1.3
+  ],
+  "description": "Stores in n8n memory, so no credentials required",
+  "defaults": {
+    "name": "Simple Memory"
+  },
+  "codex": {
+    "categories": [
+      "AI"
+    ],
+    "subcategories": {
+      "AI": [
+        "Memory"
+      ],
+      "Memory": [
+        "For beginners"
+      ]
+    },
+    "resources": {
+      "primaryDocumentation": [
+        {
+          "url": "https://docs.n8n.io/integrations/builtin/cluster-nodes/sub-nodes/n8n-nodes-langchain.memorybufferwindow/"
+        }
+      ]
+    }
+  },
+  "inputs": [],
+  "outputs": [
+    "ai_memory"
+  ],
+  "outputNames": [
+    "Memory"
+  ],
+  "properties": [
+    {
+      "displayName": "This node must be connected to an AI agent. <a data-action='openSelectiveNodeCreator' data-action-parameter-creatorview='AI'>Insert one</a>",
+      "name": "notice",
+      "type": "notice",
+      "default": "",
+      "typeOptions": {
+        "containerClass": "ndv-connection-hint-notice"
+      }
+    },
+    {
+      "displayName": "Session Key",
+      "name": "sessionKey",
+      "type": "string",
+      "default": "chat_history",
+      "description": "The key to use to store the memory in the workflow data",
+      "displayOptions": {
+        "show": {
+          "@version": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "displayName": "Session ID",
+      "name": "sessionKey",
+      "type": "string",
+      "default": "={{ $json.sessionId }}",
+      "description": "The key to use to store the memory",
+      "displayOptions": {
+        "show": {
+          "@version": [
+            1.1
+          ]
+        }
+      }
+    },
+    {
+      "displayName": "Session ID",
+      "name": "sessionIdType",
+      "type": "options",
+      "options": [
+        {
+          "name": "Connected Chat Trigger Node",
+          "value": "fromInput",
+          "description": "Looks for an input field called 'sessionId' that is coming from a directly connected Chat Trigger"
+        },
+        {
+          "name": "Define below",
+          "value": "customKey",
+          "description": "Use an expression to reference data in previous nodes or enter static text"
+        }
+      ],
+      "default": "fromInput",
+      "displayOptions": {
+        "show": {
+          "@version": [
+            {
+              "_cnd": {
+                "gte": 1.2
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "displayName": "Session Key From Previous Node",
+      "name": "sessionKey",
+      "type": "string",
+      "default": "={{ $json.sessionId }}",
+      "disabledOptions": {
+        "show": {
+          "sessionIdType": [
+            "fromInput"
+          ]
+        }
+      },
+      "displayOptions": {
+        "show": {
+          "sessionIdType": [
+            "fromInput"
+          ],
+          "@version": [
+            {
+              "_cnd": {
+                "gte": 1.3
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "displayName": "Key",
+      "name": "sessionKey",
+      "type": "string",
+      "default": "",
+      "description": "The key to use to store session ID in the memory",
+      "displayOptions": {
+        "show": {
+          "sessionIdType": [
+            "customKey"
+          ]
+        }
+      }
+    },
+    {
+      "displayName": "Context Window Length",
+      "name": "contextWindowLength",
+      "type": "number",
+      "default": 5,
+      "hint": "How many past interactions the model receives as context"
+    }
+  ]
+}
+```

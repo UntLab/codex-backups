@@ -1,0 +1,25 @@
+---
+description: N8N workflow development and management rules
+globs: "**/*n8n*/**"
+alwaysApply: false
+---
+
+# N8N Workflow Rules
+
+## Connection
+- N8N config stored at `~/Cursor/shared/configs/n8n-config.json`
+- Always read config before making API calls
+- Use REST API v1 for all operations
+
+## Workflow Development
+- Export workflows to `~/Cursor/projects/n8n-workflows/` for backup
+- Name workflows descriptively: `[Category] Action Description`
+- Add notes to complex nodes explaining their purpose
+- Always include error handling (Error Trigger workflow)
+
+## Best Practices
+- Test webhooks locally with curl before deploying
+- Use environment variables in n8n for API keys
+- Keep workflows focused — use "Execute Workflow" for subroutines
+- Pin test data on nodes during development
+- Deactivate workflows before making major changes
