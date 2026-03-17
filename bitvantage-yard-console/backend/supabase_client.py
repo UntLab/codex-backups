@@ -4,14 +4,43 @@ import json
 import os
 import secrets
 import sqlite3
+import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence, Union
+
+try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:  # pragma: no cover - optional until dependencies are installed
+    psycopg = None
+    dict_row = None
+
+
+def load_project_env() -> None:
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+load_project_env()
 
 
 LOCAL_DB_PATH = os.getenv(
     "BITVANTAGE_LOCAL_DB_PATH",
     os.path.join(os.path.dirname(__file__), "bitvantage_local.db"),
 )
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+USE_POSTGRES = bool(DATABASE_URL)
+DEMO_MODE = os.getenv("BITVANTAGE_DEMO_MODE", "false" if USE_POSTGRES else "true").strip().lower() in {"1", "true", "yes", "on"}
 
 PASSWORD_ITERATIONS = 120_000
 ROLE_PERMISSIONS = {
@@ -82,7 +111,69 @@ DEFAULT_LOGS = [
 
 DEFAULT_SLOT_OVERRIDES = []
 
-_sessions: Dict[str, Dict[str, Any]] = {}
+SCHEMA_REQUIRED_TABLES = [
+    "users",
+    "terminal_blocks",
+    "slot_overrides",
+    "inventory",
+    "operations_log",
+    "notification_logs",
+    "sessions",
+]
+
+
+class DBResult:
+    def __init__(self, cursor: Any):
+        self._cursor = cursor
+
+    @property
+    def rowcount(self) -> int:
+        return getattr(self._cursor, "rowcount", -1)
+
+    def fetchone(self):
+        return self._cursor.fetchone()
+
+    def fetchall(self):
+        return self._cursor.fetchall()
+
+
+class DBConnection:
+    def __init__(self, connection: Any, postgres: bool):
+        self._connection = connection
+        self._postgres = postgres
+
+    def _adapt_query(self, query: str) -> str:
+        return query.replace("?", "%s") if self._postgres else query
+
+    def execute(self, query: str, params: Optional[Union[tuple, list]] = None) -> DBResult:
+        cursor = self._connection.cursor()
+        cursor.execute(self._adapt_query(query), params or ())
+        return DBResult(cursor)
+
+    def executemany(self, query: str, seq_params: Sequence[Sequence[Any]]) -> DBResult:
+        cursor = self._connection.cursor()
+        cursor.executemany(self._adapt_query(query), seq_params)
+        return DBResult(cursor)
+
+    def executescript(self, script: str) -> None:
+        if not self._postgres:
+            self._connection.executescript(script)
+            return
+        statements = [statement.strip() for statement in script.split(";") if statement.strip()]
+        cursor = self._connection.cursor()
+        for statement in statements:
+            cursor.execute(statement)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if exc_type:
+            self._connection.rollback()
+        else:
+            self._connection.commit()
+        self._connection.close()
+        return False
 
 
 def utc_now_iso() -> str:
@@ -106,8 +197,11 @@ def get_permissions_for_role(role: str) -> List[str]:
 
 
 def public_user(user: Dict[str, Any]) -> Dict[str, Any]:
+    created_at = user.get("created_at")
+    if hasattr(created_at, "isoformat"):
+        created_at = created_at.isoformat()
     return {
-        "user_id": user["user_id"],
+        "user_id": str(user["user_id"]),
         "username": user["username"],
         "full_name": user["full_name"],
         "role": user["role"],
@@ -116,17 +210,24 @@ def public_user(user: Dict[str, Any]) -> Dict[str, Any]:
         "telegram_notifications_enabled": bool(user.get("telegram_notifications_enabled", True)),
         "receive_all_movement_alerts": bool(user.get("receive_all_movement_alerts", False)),
         "permissions": get_permissions_for_role(user["role"]),
-        "created_at": user.get("created_at"),
+        "created_at": created_at,
     }
 
 
-def get_db() -> sqlite3.Connection:
+def get_db() -> DBConnection:
+    if USE_POSTGRES:
+        if psycopg is None:
+            raise RuntimeError("psycopg is required when DATABASE_URL is set. Install backend requirements first.")
+        connection = psycopg.connect(DATABASE_URL, row_factory=dict_row, autocommit=False)
+        return DBConnection(connection, postgres=True)
     connection = sqlite3.connect(LOCAL_DB_PATH)
     connection.row_factory = sqlite3.Row
-    return connection
+    return DBConnection(connection, postgres=False)
 
 
 def bool_int(value: bool) -> int:
+    if USE_POSTGRES:
+        return bool(value)
     return 1 if value else 0
 
 
@@ -138,26 +239,27 @@ def format_bay_number(value: int) -> str:
     return str(int(value)).zfill(2)
 
 
-def get_block_record(block: str) -> Optional[Dict[str, Any]]:
-    return next((item for item in get_terminal_layout() if item["block"] == block), None)
+def get_block_record(block: str, layout: Optional[List[Dict[str, Any]]] = None) -> Optional[Dict[str, Any]]:
+    source = layout if layout is not None else get_terminal_layout()
+    return next((item for item in source if item["block"] == block), None)
 
 
-def get_max_surface_bay(block: str) -> int:
-    block_record = get_block_record(block)
+def get_max_surface_bay(block_or_record: Union[str, Dict[str, Any]]) -> int:
+    block_record = block_or_record if isinstance(block_or_record, dict) else get_block_record(block_or_record)
     return int(block_record["bay_count"]) * 2 - 1 if block_record else 0
 
 
-def get_max_wide_bay(block: str) -> int:
-    return get_max_surface_bay(block) - 1
+def get_max_wide_bay(block_or_record: Union[str, Dict[str, Any]]) -> int:
+    return get_max_surface_bay(block_or_record) - 1
 
 
 def is_surface_bay(bay: str) -> bool:
     return int(bay) % 2 == 1
 
 
-def can_start_wide_at_surface_bay(block: str, bay: str) -> bool:
+def can_start_wide_at_surface_bay(block_or_record: Union[str, Dict[str, Any]], bay: str) -> bool:
     bay_num = int(bay)
-    return bay_num % 4 == 1 and bay_num + 2 <= get_max_surface_bay(block)
+    return bay_num % 4 == 1 and bay_num + 2 <= get_max_surface_bay(block_or_record)
 
 
 def get_wide_anchor_bay_from_surface_bay(bay: str) -> str:
@@ -173,16 +275,16 @@ def get_surface_start_bay_from_wide_anchor(bay: str) -> str:
     return get_surface_bays_from_wide_anchor(bay)[0]
 
 
-def is_45ft_anchor_allowed(block: str, bay: str) -> bool:
+def is_45ft_anchor_allowed(block_or_record: Union[str, Dict[str, Any]], bay: str) -> bool:
     bay_num = int(bay)
-    return bay_num == 2 or bay_num == get_max_wide_bay(block)
+    return bay_num == 2 or bay_num == get_max_wide_bay(block_or_record)
 
 
-def default_allowed_types_for_bay(block: str, bay: str) -> List[str]:
+def default_allowed_types_for_bay(block_or_record: Union[str, Dict[str, Any]], bay: str) -> List[str]:
     allowed = ["20ft"]
-    if can_start_wide_at_surface_bay(block, bay):
+    if can_start_wide_at_surface_bay(block_or_record, bay):
         allowed.append("40ft")
-        if is_45ft_anchor_allowed(block, get_wide_anchor_bay_from_surface_bay(bay)):
+        if is_45ft_anchor_allowed(block_or_record, get_wide_anchor_bay_from_surface_bay(bay)):
             allowed.append("45ft")
     return allowed
 
@@ -288,7 +390,38 @@ def reseed_demo_inventory(db: sqlite3.Connection) -> None:
     )
 
 
+def ensure_postgres_ready(db: DBConnection) -> None:
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sessions (
+            token TEXT PRIMARY KEY,
+            username TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    missing = []
+    for table_name in SCHEMA_REQUIRED_TABLES:
+        row = db.execute("SELECT to_regclass(%s) AS table_name", (table_name,)).fetchone()
+        if table_name == "sessions":
+            continue
+        if not row or not row.get("table_name"):
+            missing.append(table_name)
+    if missing:
+        raise RuntimeError(
+            "Supabase schema is incomplete. Run setup_supabase.sql before starting the backend. "
+            f"Missing tables: {', '.join(missing)}."
+        )
+
+
 def init_db() -> None:
+    if USE_POSTGRES:
+        with get_db() as db:
+            ensure_postgres_ready(db)
+            sync_terminal_blocks(db)
+            sync_slot_overrides(db)
+        return
+
     os.makedirs(os.path.dirname(LOCAL_DB_PATH), exist_ok=True)
     with get_db() as db:
         db.executescript(
@@ -365,9 +498,15 @@ def init_db() -> None:
                 status_code INTEGER,
                 created_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS sessions (
+                token TEXT PRIMARY KEY,
+                username TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
             """
         )
-        if db.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 0:
+        count_row = db.execute("SELECT COUNT(*) AS count FROM users").fetchone()
+        if count_row["count"] == 0 and DEMO_MODE:
             for user in DEFAULT_USERS:
                 db.execute(
                     """
@@ -379,12 +518,44 @@ def init_db() -> None:
                 )
         sync_terminal_blocks(db)
         sync_slot_overrides(db)
-        if should_reset_demo_inventory(db):
+        if DEMO_MODE and should_reset_demo_inventory(db):
             reseed_demo_inventory(db)
 
 
-def row_dict(row: sqlite3.Row) -> Dict[str, Any]:
+def row_dict(row: Any) -> Dict[str, Any]:
+    if row is None:
+        return {}
+    if isinstance(row, dict):
+        return row
     return dict(row)
+
+
+def decode_json_field(value: Any, default: Any) -> Any:
+    if value is None or value == "":
+        return default
+    if isinstance(value, (dict, list)):
+        return value
+    return json.loads(value)
+
+
+def json_default(value: Any) -> Any:
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
+
+
+def json_dumps_safe(value: Any) -> str:
+    return json.dumps(value, default=json_default)
+
+
+def normalize_user_row(user: Any) -> Dict[str, Any]:
+    item = row_dict(user)
+    if not item:
+        return {}
+    item["notifications_enabled"] = bool(item["notifications_enabled"])
+    item["telegram_notifications_enabled"] = bool(item["telegram_notifications_enabled"])
+    item["receive_all_movement_alerts"] = bool(item["receive_all_movement_alerts"])
+    return item
 
 
 def parse_position_code(position_code: str) -> Dict[str, Any]:
@@ -395,22 +566,24 @@ def parse_position_code(position_code: str) -> Dict[str, Any]:
         return {}
 
 
-def _local_user_row(username: str) -> Optional[Dict[str, Any]]:
-    with get_db() as db:
+def _local_user_row(username: str, db: Optional[DBConnection] = None) -> Optional[Dict[str, Any]]:
+    if db is None:
+        with get_db() as db_conn:
+            row = db_conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+    else:
         row = db.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
     if not row:
         return None
-    item = row_dict(row)
-    item["notifications_enabled"] = bool(item["notifications_enabled"])
-    item["telegram_notifications_enabled"] = bool(item["telegram_notifications_enabled"])
-    item["receive_all_movement_alerts"] = bool(item["receive_all_movement_alerts"])
-    return item
+    return normalize_user_row(row)
 
 
-def list_users() -> List[Dict[str, Any]]:
-    with get_db() as db:
+def list_users(db: Optional[DBConnection] = None) -> List[Dict[str, Any]]:
+    if db is None:
+        with get_db() as db_conn:
+            rows = db_conn.execute("SELECT * FROM users ORDER BY username").fetchall()
+    else:
         rows = db.execute("SELECT * FROM users ORDER BY username").fetchall()
-    return [public_user(_local_user_row(row["username"])) for row in rows]
+    return [public_user(normalize_user_row(row)) for row in rows]
 
 
 def normalize_role(role: str) -> str:
@@ -432,19 +605,26 @@ def create_session(username: str) -> tuple[str, Dict[str, Any]]:
     if not user:
         raise ValueError("Unknown user")
     token = secrets.token_urlsafe(32)
-    _sessions[token] = {"username": username, "created_at": utc_now_iso()}
+    with get_db() as db:
+        db.execute(
+            "INSERT INTO sessions (token, username, created_at) VALUES (?, ?, ?)",
+            (token, username, utc_now_iso()),
+        )
     return token, public_user(user)
 
 
 def delete_session(token: str) -> None:
-    _sessions.pop(token, None)
+    with get_db() as db:
+        db.execute("DELETE FROM sessions WHERE token = ?", (token,))
 
 
 def get_user_by_token(token: str) -> Optional[Dict[str, Any]]:
-    session = _sessions.get(token)
+    with get_db() as db:
+        session = db.execute("SELECT username FROM sessions WHERE token = ?", (token,)).fetchone()
     if not session:
         return None
-    user = _local_user_row(session["username"])
+    username = session["username"] if isinstance(session, dict) else session["username"]
+    user = _local_user_row(username)
     return public_user(user) if user else None
 
 
@@ -458,25 +638,46 @@ def create_user_record(payload: Dict[str, Any]) -> Dict[str, Any]:
         raise ValueError("Username already exists.")
     role = normalize_role(payload["role"])
     with get_db() as db:
-        db.execute(
-            """
-            INSERT INTO users (user_id, username, password_hash, role, full_name, telegram_chat_id,
-            notifications_enabled, telegram_notifications_enabled, receive_all_movement_alerts, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                f"usr-{secrets.token_hex(4)}",
-                payload["username"].strip(),
-                hash_password(payload["password"]),
-                role,
-                payload["full_name"].strip(),
-                payload.get("telegram_chat_id"),
-                bool_int(payload.get("notifications_enabled", True)),
-                bool_int(payload.get("telegram_notifications_enabled", True)),
-                bool_int(payload.get("receive_all_movement_alerts", False) if "receive_all_movement_alerts" in get_permissions_for_role(role) else False),
-                utc_now_iso(),
-            ),
-        )
+        if USE_POSTGRES:
+            db.execute(
+                """
+                INSERT INTO users (user_id, username, password_hash, role, full_name, telegram_chat_id,
+                notifications_enabled, telegram_notifications_enabled, receive_all_movement_alerts, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    str(uuid.uuid4()),
+                    payload["username"].strip(),
+                    hash_password(payload["password"]),
+                    role,
+                    payload["full_name"].strip(),
+                    payload.get("telegram_chat_id"),
+                    bool_int(payload.get("notifications_enabled", True)),
+                    bool_int(payload.get("telegram_notifications_enabled", True)),
+                    bool_int(payload.get("receive_all_movement_alerts", False) if "receive_all_movement_alerts" in get_permissions_for_role(role) else False),
+                    utc_now_iso(),
+                ),
+            )
+        else:
+            db.execute(
+                """
+                INSERT INTO users (user_id, username, password_hash, role, full_name, telegram_chat_id,
+                notifications_enabled, telegram_notifications_enabled, receive_all_movement_alerts, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    f"usr-{secrets.token_hex(4)}",
+                    payload["username"].strip(),
+                    hash_password(payload["password"]),
+                    role,
+                    payload["full_name"].strip(),
+                    payload.get("telegram_chat_id"),
+                    bool_int(payload.get("notifications_enabled", True)),
+                    bool_int(payload.get("telegram_notifications_enabled", True)),
+                    bool_int(payload.get("receive_all_movement_alerts", False) if "receive_all_movement_alerts" in get_permissions_for_role(role) else False),
+                    utc_now_iso(),
+                ),
+            )
     return get_user_by_username(payload["username"].strip())
 
 
@@ -530,8 +731,11 @@ def update_notification_settings(username: str, updates: Dict[str, Any]) -> Opti
     return get_user_by_username(username)
 
 
-def get_terminal_layout() -> List[Dict[str, Any]]:
-    with get_db() as db:
+def get_terminal_layout(db: Optional[DBConnection] = None) -> List[Dict[str, Any]]:
+    if db is None:
+        with get_db() as db_conn:
+            rows = db_conn.execute("SELECT * FROM terminal_blocks ORDER BY block").fetchall()
+    else:
         rows = db.execute("SELECT * FROM terminal_blocks ORDER BY block").fetchall()
     return [row_dict(row) for row in rows]
 
@@ -555,7 +759,7 @@ def build_slot_record(block_record: Dict[str, Any], bay: str, row: int, override
         "row_num": row,
         "enabled": True,
         "max_tiers": block_record["tier_count"],
-        "allowed_container_types": default_allowed_types_for_bay(block_record["block"], bay),
+        "allowed_container_types": default_allowed_types_for_bay(block_record, bay),
         "notes": None,
     }
     if override:
@@ -563,20 +767,42 @@ def build_slot_record(block_record: Dict[str, Any], bay: str, row: int, override
     return slot
 
 
-def get_slots_for_block(block: str) -> List[Dict[str, Any]]:
-    block_record = next((item for item in get_terminal_layout() if item["block"] == block), None)
-    if not block_record:
-        return []
-    with get_db() as db:
-        rows = db.execute("SELECT * FROM slot_overrides WHERE block = ?", (block,)).fetchall()
-    overrides = {
+def load_slot_overrides(
+    db: Optional[DBConnection] = None,
+    block: Optional[str] = None,
+) -> Dict[str, Dict[str, Any]]:
+    query = "SELECT * FROM slot_overrides"
+    params: List[Any] = []
+    if block is not None:
+        query += " WHERE block = ?"
+        params.append(block)
+    if db is None:
+        with get_db() as db_conn:
+            rows = db_conn.execute(query, params).fetchall()
+    else:
+        rows = db.execute(query, params).fetchall()
+    return {
         row["slot_code"]: {
             **row_dict(row),
             "enabled": bool(row["enabled"]),
-            "allowed_container_types": json.loads(row["allowed_container_types"]),
+            "allowed_container_types": decode_json_field(row["allowed_container_types"], []),
         }
         for row in rows
     }
+
+
+def get_slots_for_block(
+    block: str,
+    *,
+    layout_records: Optional[List[Dict[str, Any]]] = None,
+    overrides_by_slot: Optional[Dict[str, Dict[str, Any]]] = None,
+    db: Optional[DBConnection] = None,
+) -> List[Dict[str, Any]]:
+    layout_source = layout_records if layout_records is not None else get_terminal_layout(db=db)
+    block_record = next((item for item in layout_source if item["block"] == block), None)
+    if not block_record:
+        return []
+    overrides = overrides_by_slot if overrides_by_slot is not None else load_slot_overrides(db=db, block=block)
     slots = []
     for bay_index in range(1, block_record["bay_count"] + 1):
         bay = format_bay_number(bay_index * 2 - 1)
@@ -586,15 +812,47 @@ def get_slots_for_block(block: str) -> List[Dict[str, Any]]:
     return slots
 
 
-def get_all_slots() -> List[Dict[str, Any]]:
+def get_all_slots(
+    *,
+    db: Optional[DBConnection] = None,
+    layout_records: Optional[List[Dict[str, Any]]] = None,
+) -> List[Dict[str, Any]]:
+    layout_source = layout_records if layout_records is not None else get_terminal_layout(db=db)
+    overrides_by_slot = load_slot_overrides(db=db)
     result: List[Dict[str, Any]] = []
-    for block in get_terminal_layout():
-        result.extend(get_slots_for_block(block["block"]))
+    for block in layout_source:
+        result.extend(
+            get_slots_for_block(
+                block["block"],
+                layout_records=layout_source,
+                overrides_by_slot=overrides_by_slot,
+            )
+        )
     return result
 
 
-def get_slot(block: str, bay: str, row: int) -> Optional[Dict[str, Any]]:
-    return next((slot for slot in get_slots_for_block(block) if slot["bay"] == bay and slot["row_num"] == row), None)
+def get_slot(
+    block: str,
+    bay: str,
+    row: int,
+    *,
+    db: Optional[DBConnection] = None,
+    layout_records: Optional[List[Dict[str, Any]]] = None,
+    overrides_by_slot: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> Optional[Dict[str, Any]]:
+    return next(
+        (
+            slot
+            for slot in get_slots_for_block(
+                block,
+                db=db,
+                layout_records=layout_records,
+                overrides_by_slot=overrides_by_slot,
+            )
+            if slot["bay"] == bay and slot["row_num"] == row
+        ),
+        None,
+    )
 
 
 def update_slot(block: str, bay: str, row: int, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -634,8 +892,11 @@ def insert_inventory(container: Dict[str, Any]) -> bool:
     return True
 
 
-def check_inventory(container_id: str) -> Optional[Dict[str, Any]]:
-    with get_db() as db:
+def check_inventory(container_id: str, db: Optional[DBConnection] = None) -> Optional[Dict[str, Any]]:
+    if db is None:
+        with get_db() as db_conn:
+            row = db_conn.execute("SELECT * FROM inventory WHERE container_id = ?", (container_id,)).fetchone()
+    else:
         row = db.execute("SELECT * FROM inventory WHERE container_id = ?", (container_id,)).fetchone()
     return row_dict(row) if row else None
 
@@ -652,9 +913,20 @@ def find_inventory_by_position(position_code: str, exclude_container_id: Optiona
     return row_dict(row) if row else None
 
 
-def find_inventory_by_surface_position(block: str, bay: str, row_num: int, tier_num: int, container_type: str, exclude_container_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+def find_inventory_by_surface_position(
+    block: str,
+    bay: str,
+    row_num: int,
+    tier_num: int,
+    container_type: str,
+    exclude_container_id: Optional[str] = None,
+    *,
+    inventory_rows: Optional[List[Dict[str, Any]]] = None,
+    db: Optional[DBConnection] = None,
+) -> Optional[Dict[str, Any]]:
     target_codes = set(get_surface_position_codes(block, bay, row_num, tier_num, container_type))
-    for item in get_all_inventory():
+    inventory = inventory_rows if inventory_rows is not None else get_all_inventory(db=db)
+    for item in inventory:
         if exclude_container_id and item["container_id"] == exclude_container_id:
             continue
         occupied_codes = set(get_surface_position_codes(item["block"], item["bay"], item["row_num"], item["tier_num"], item["container_type"]))
@@ -670,13 +942,23 @@ def get_slot_lookup_bay(block: str, bay: str, container_type: str) -> str:
     return get_surface_start_bay_from_wide_anchor(normalized_bay)
 
 
-def has_supporting_base(block: str, bay: str, row_num: int, tier_num: int, container_type: str) -> bool:
+def has_supporting_base(
+    block: str,
+    bay: str,
+    row_num: int,
+    tier_num: int,
+    container_type: str,
+    *,
+    inventory_rows: Optional[List[Dict[str, Any]]] = None,
+    db: Optional[DBConnection] = None,
+) -> bool:
     if int(tier_num) <= 1:
         return True
+    inventory = inventory_rows if inventory_rows is not None else get_all_inventory(db=db)
     support_codes = set(get_surface_position_codes(block, bay, row_num, tier_num - 1, container_type))
     for target_code in support_codes:
         supported = False
-        for item in get_all_inventory():
+        for item in inventory:
             if item["block"] != block or int(item["row_num"]) != int(row_num) or int(item["tier_num"]) != int(tier_num) - 1:
                 continue
             occupied_codes = set(get_surface_position_codes(item["block"], item["bay"], item["row_num"], item["tier_num"], item["container_type"]))
@@ -688,8 +970,11 @@ def has_supporting_base(block: str, bay: str, row_num: int, tier_num: int, conta
     return True
 
 
-def get_all_inventory() -> List[Dict[str, Any]]:
-    with get_db() as db:
+def get_all_inventory(db: Optional[DBConnection] = None) -> List[Dict[str, Any]]:
+    if db is None:
+        with get_db() as db_conn:
+            rows = db_conn.execute("SELECT * FROM inventory ORDER BY position_code").fetchall()
+    else:
         rows = db.execute("SELECT * FROM inventory ORDER BY position_code").fetchall()
     return [row_dict(row) for row in rows]
 
@@ -700,7 +985,7 @@ def delete_inventory(container_id: str) -> bool:
     return True
 
 
-def update_inventory(container_id: str, updates: Dict[str, Any]) -> bool:
+def update_inventory(container_id: str, updates: Dict[str, Any], db: Optional[DBConnection] = None) -> bool:
     payload = dict(updates)
     timestamp = utc_now_iso()
     payload["updated_at"] = timestamp
@@ -708,17 +993,33 @@ def update_inventory(container_id: str, updates: Dict[str, Any]) -> bool:
         payload["positioned_at"] = timestamp
     assignments = ", ".join(f"{key} = ?" for key in payload.keys())
     params = list(payload.values()) + [container_id]
-    with get_db() as db:
+    if db is None:
+        with get_db() as db_conn:
+            db_conn.execute(f"UPDATE inventory SET {assignments} WHERE container_id = ?", params)
+    else:
         db.execute(f"UPDATE inventory SET {assignments} WHERE container_id = ?", params)
     return True
 
 
-def insert_log(log_entry: Dict[str, Any]) -> bool:
+def insert_log(log_entry: Dict[str, Any], db: Optional[DBConnection] = None) -> bool:
     payload = dict(log_entry)
     performed_at = payload.get("performed_at") or utc_now_iso()
     payload["performed_at"] = performed_at
     payload.setdefault("created_at", performed_at)
-    with get_db() as db:
+    if db is None:
+        with get_db() as db_conn:
+            db_conn.execute(
+                """
+                INSERT INTO operations_log (container_id, operation_type, old_position_code, new_position_code, performed_at, created_at, operator_username, operator_full_name, operator_role, container_snapshot)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    payload["container_id"], payload["operation_type"], payload.get("old_position_code"), payload.get("new_position_code"),
+                    payload["performed_at"], payload["created_at"], payload.get("operator_username"), payload.get("operator_full_name"),
+                    payload.get("operator_role"), json_dumps_safe(payload.get("container_snapshot", {}))
+                ),
+            )
+    else:
         db.execute(
             """
             INSERT INTO operations_log (container_id, operation_type, old_position_code, new_position_code, performed_at, created_at, operator_username, operator_full_name, operator_role, container_snapshot)
@@ -727,13 +1028,19 @@ def insert_log(log_entry: Dict[str, Any]) -> bool:
             (
                 payload["container_id"], payload["operation_type"], payload.get("old_position_code"), payload.get("new_position_code"),
                 payload["performed_at"], payload["created_at"], payload.get("operator_username"), payload.get("operator_full_name"),
-                payload.get("operator_role"), json.dumps(payload.get("container_snapshot", {}))
+                payload.get("operator_role"), json_dumps_safe(payload.get("container_snapshot", {}))
             ),
         )
     return True
 
 
-def get_operations_log(container_id: Optional[str] = None, date_from: Optional[str] = None, date_to: Optional[str] = None, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+def get_operations_log(
+    container_id: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    limit: Optional[int] = None,
+    db: Optional[DBConnection] = None,
+) -> List[Dict[str, Any]]:
     query = "SELECT * FROM operations_log WHERE 1=1"
     params: List[Any] = []
     if container_id:
@@ -748,14 +1055,35 @@ def get_operations_log(container_id: Optional[str] = None, date_from: Optional[s
     query += " ORDER BY performed_at ASC"
     if limit:
         query += f" LIMIT {int(limit)}"
-    with get_db() as db:
+    if db is None:
+        with get_db() as db_conn:
+            rows = db_conn.execute(query, params).fetchall()
+    else:
         rows = db.execute(query, params).fetchall()
     logs = []
     for row in rows:
         item = row_dict(row)
-        item["container_snapshot"] = json.loads(item["container_snapshot"]) if item.get("container_snapshot") else {}
+        item["container_snapshot"] = decode_json_field(item.get("container_snapshot"), {})
         logs.append(item)
     return logs
+
+
+def get_bootstrap_payload(current_user: Dict[str, Any], logs_limit: int = 200) -> Dict[str, Any]:
+    with get_db() as db:
+        layout = get_terminal_layout(db=db)
+        slots = get_all_slots(db=db, layout_records=layout)
+        inventory = get_all_inventory(db=db)
+        logs = get_operations_log(limit=logs_limit, db=db)
+        payload = {
+            "layout": layout,
+            "slots": slots,
+            "inventory": inventory,
+            "logs": logs,
+            "fetched_at": utc_now_iso(),
+        }
+        if "manage_users" in current_user.get("permissions", []):
+            payload["admin_users"] = list_users(db=db)
+    return payload
 
 
 def get_container_history(container_id: str) -> List[Dict[str, Any]]:
@@ -773,7 +1101,7 @@ def insert_notification_log(entry: Dict[str, Any]) -> bool:
             """,
             (
                 payload.get("event_id"), payload.get("operation_type"), payload.get("container_id"),
-                json.dumps(payload.get("targets", [])), bool_int(payload.get("success", False)),
+                json_dumps_safe(payload.get("targets", [])), bool_int(payload.get("success", False)),
                 payload.get("response_text"), payload.get("status_code", 0), payload["created_at"]
             ),
         )
@@ -789,17 +1117,22 @@ def get_notification_logs(limit: Optional[int] = None) -> List[Dict[str, Any]]:
     items = []
     for row in rows:
         item = row_dict(row)
-        item["targets"] = json.loads(item["targets"]) if item.get("targets") else []
+        item["targets"] = decode_json_field(item.get("targets"), [])
         item["success"] = bool(item["success"])
         items.append(item)
     return items
 
 
-def get_notification_targets(operation_type: str, acting_user: Dict[str, Any], container_snapshot: Dict[str, Any]) -> List[Dict[str, str]]:
+def get_notification_targets(
+    operation_type: str,
+    acting_user: Dict[str, Any],
+    container_snapshot: Dict[str, Any],
+    db: Optional[DBConnection] = None,
+) -> List[Dict[str, str]]:
     targets: List[Dict[str, str]] = []
     if acting_user.get("notifications_enabled") and acting_user.get("telegram_notifications_enabled"):
         targets.append({"type": "user", "channel": "telegram", "target": acting_user["username"], "label": f"{acting_user['full_name']} (self)"})
-    for user in list_users():
+    for user in list_users(db=db):
         if user["username"] == acting_user["username"]:
             continue
         if user.get("notifications_enabled") and user.get("telegram_notifications_enabled") and user.get("receive_all_movement_alerts"):

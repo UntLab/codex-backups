@@ -418,7 +418,8 @@ async function restoreSession() {
         syncRoleBasedUi();
         hideAuthScreen();
         startAutoRefresh();
-        await loadInventory();
+        renderDashboard();
+        void loadInventory();
         return true;
     } catch {
         resetSessionState();
@@ -450,7 +451,8 @@ async function login(username, password) {
         hideAuthScreen();
         closeSettingsModal();
         startAutoRefresh();
-        await loadInventory();
+        renderDashboard();
+        void loadInventory();
         showToast(`Signed in as ${state.currentUser.full_name}.`, "success");
     } catch (error) {
         setAuthError(error.message);
@@ -458,12 +460,15 @@ async function login(username, password) {
 }
 
 async function logout() {
-    try {
-        if (state.authToken) await apiFetch(`${API_ROOT}/auth/logout`, { method: "POST" }, true);
-    } catch {}
+    const authToken = state.authToken;
     resetSessionState();
     showAuthScreen();
     showToast("Signed out.", "success");
+    if (!authToken) return;
+    fetch(`${API_ROOT}/auth/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${authToken}` },
+    }).catch(() => {});
 }
 
 function apiHeaders(extra = {}) {
@@ -627,8 +632,16 @@ function openMoveConfirmModal(moveTarget) {
     setText("move-confirm-route", `${moveTarget.movingContainer.position_code} -> ${moveTarget.target.block}-${moveTarget.target.bay}-${moveTarget.target.row}-${moveTarget.nextTier}`);
     setText("move-confirm-tier", `Target tier ${moveTarget.nextTier} of ${moveTarget.slotRecord.max_tiers}`);
     document.getElementById("move-confirm-rules").innerHTML = `
-        <div class="history-item"><strong>Allowed types</strong><span>${moveTarget.slotRecord.allowed_container_types.join(", ")}</span><small>${moveTarget.slotRecord.notes || "No slot note"}</small></div>
-        <div class="history-item"><strong>Slot status</strong><span>${moveTarget.slotRecord.enabled ? "Open" : "Blocked"}</span><small>${moveTarget.target.block}-${moveTarget.target.bay}-${moveTarget.target.row}</small></div>
+        <div class="history-item move-rule-item">
+            <strong>Allowed Types</strong>
+            <span>${moveTarget.slotRecord.allowed_container_types.join(", ")}</span>
+            <small>${moveTarget.slotRecord.notes || "No slot note"}</small>
+        </div>
+        <div class="history-item move-rule-item">
+            <strong>Slot Status</strong>
+            <span>${moveTarget.slotRecord.enabled ? "Open" : "Blocked"}</span>
+            <small>${moveTarget.target.block}-${moveTarget.target.bay}-${moveTarget.target.row}</small>
+        </div>
     `;
     document.getElementById("move-confirm-modal").classList.remove("hidden");
 }
@@ -656,30 +669,84 @@ function stopAutoRefresh() {
     state.autoRefreshTimer = null;
 }
 
+function applyInventoryPayload(payload = {}) {
+    state.layoutConfig = Array.isArray(payload.layout) ? payload.layout : [];
+    state.slotCatalog = Array.isArray(payload.slots) ? payload.slots : [];
+    state.inventory = Array.isArray(payload.inventory)
+        ? payload.inventory.map((item) => ({ ...item, row_num: Number(item.row_num), tier_num: Number(item.tier_num) }))
+        : [];
+    state.logs = Array.isArray(payload.logs) ? payload.logs : [];
+    state.lastLoadedAt = new Date();
+    preserveSelection();
+
+    if (Array.isArray(payload.admin_users)) {
+        state.adminUsers = payload.admin_users;
+        if (state.selectedAdminUser) {
+            state.selectedAdminUser = state.adminUsers.find((user) => user.username === state.selectedAdminUser.username) || null;
+        }
+        renderAdminUsers();
+    } else if (state.currentUser?.permissions?.includes("manage_users")) {
+        void loadAdminUsers();
+    }
+
+    if (state.currentUser?.permissions?.includes("manage_layout")) {
+        renderAdminBlocks();
+        renderAdminSlots();
+    }
+    renderDashboard();
+}
+
+async function loadInventoryLegacy() {
+    const [layoutResponse, slotsResponse, inventoryResponse, logsResponse] = await Promise.all([
+        apiFetch(`${API_ROOT}/yard/layout`),
+        apiFetch(`${API_ROOT}/yard/slots`),
+        apiFetch(`${API_BASE_URL}/inventory`),
+        apiFetch(`${API_BASE_URL}/logs?limit=200`),
+    ]);
+    if (!inventoryResponse.ok) throw new Error("Failed to fetch inventory.");
+    return {
+        layout: layoutResponse.ok ? await layoutResponse.json() : [],
+        slots: slotsResponse.ok ? await slotsResponse.json() : [],
+        inventory: await inventoryResponse.json(),
+        logs: logsResponse.ok ? await logsResponse.json() : [],
+    };
+}
+
+function buildPositionCode(block, bay, row, tier) {
+    return `${block}-${String(bay).padStart(2, "0")}-${row}-${tier}`;
+}
+
+function applyOptimisticRestow(containerId, destination) {
+    const container = findContainerById(containerId);
+    if (!container) return false;
+    container.block = destination.block;
+    container.bay = String(destination.bay).padStart(2, "0");
+    container.row_num = Number(destination.row);
+    container.tier_num = Number(destination.tier);
+    container.position_code = buildPositionCode(container.block, container.bay, container.row_num, container.tier_num);
+    container.positioned_at = new Date().toISOString();
+    container.updated_at = container.positioned_at;
+    return true;
+}
+
+function refreshInventoryInBackground() {
+    void loadInventory({ silent: true });
+}
+
 async function loadInventory(options = {}) {
     if (!state.authToken) return;
     try {
-        const [layoutResponse, slotsResponse, inventoryResponse, logsResponse] = await Promise.all([
-            apiFetch(`${API_ROOT}/yard/layout`),
-            apiFetch(`${API_ROOT}/yard/slots`),
-            apiFetch(`${API_BASE_URL}/inventory`),
-            apiFetch(`${API_BASE_URL}/logs?limit=200`),
-        ]);
-        state.layoutConfig = layoutResponse.ok ? await layoutResponse.json() : [];
-        state.slotCatalog = slotsResponse.ok ? await slotsResponse.json() : [];
-        if (!inventoryResponse.ok) throw new Error("Failed to fetch inventory.");
-        state.inventory = (await inventoryResponse.json()).map((item) => ({ ...item, row_num: Number(item.row_num), tier_num: Number(item.tier_num) }));
-        state.logs = logsResponse.ok ? await logsResponse.json() : [];
-        state.lastLoadedAt = new Date();
-        preserveSelection();
-        if (state.currentUser?.permissions?.includes("manage_users")) await loadAdminUsers();
-        if (state.currentUser?.permissions?.includes("manage_layout")) {
-            renderAdminBlocks();
-            renderAdminSlots();
-        }
-        renderDashboard();
+        const bootstrapResponse = await apiFetch(`${API_ROOT}/bootstrap`);
+        if (!bootstrapResponse.ok) throw new Error("Failed to load terminal data.");
+        applyInventoryPayload(await bootstrapResponse.json());
     } catch (error) {
-        if (!options.silent) showToast(error.message, "error");
+        try {
+            applyInventoryPayload(await loadInventoryLegacy());
+        } catch (fallbackError) {
+            if (!options.silent) {
+                showToast(fallbackError.message || error.message, "error");
+            }
+        }
     }
 }
 
@@ -698,20 +765,36 @@ async function submitForm(form, url, payload) {
     if (form.id === "stackout-form") state.formDirty.stackout = false;
     if (form.id === "restow-form") state.formDirty.restow = false;
     if (typeof form.reset === "function") form.reset();
-    await loadInventory({ silent: true });
-    if (payload.container_id) {
-        const updatedContainer = findContainerById(payload.container_id);
-        if (updatedContainer) {
-            state.selectedContainerId = updatedContainer.container_id;
-            state.selectedBlock = updatedContainer.block;
-            state.selectedSlotKey = getSlotKey(updatedContainer.block, getSurfaceStartBay(updatedContainer), updatedContainer.row_num);
-            ensureContainerHistory(updatedContainer.container_id);
-        } else {
-            state.selectedContainerId = null;
-            state.selectedSlotKey = null;
+    if (form.id === "restow-form") {
+        applyOptimisticRestow(payload.container_id, {
+            block: payload.new_block,
+            bay: payload.new_bay,
+            row: payload.new_row,
+            tier: payload.new_tier,
+        });
+        state.selectedContainerId = payload.container_id;
+        state.selectedBlock = payload.new_block;
+        state.selectedSlotKey = getSlotKey(payload.new_block, ["40ft", "45ft"].includes(findContainerById(payload.container_id)?.container_type) ? getSurfaceStartBayFromWideAnchor(String(payload.new_bay).padStart(2, "0")) : String(payload.new_bay).padStart(2, "0"), payload.new_row);
+        ensureSlotVisible(payload.new_block, String(payload.new_bay).padStart(2, "0"), payload.new_row);
+        ensureContainerHistory(payload.container_id);
+        renderDashboard();
+        refreshInventoryInBackground();
+    } else {
+        await loadInventory({ silent: true });
+        if (payload.container_id) {
+            const updatedContainer = findContainerById(payload.container_id);
+            if (updatedContainer) {
+                state.selectedContainerId = updatedContainer.container_id;
+                state.selectedBlock = updatedContainer.block;
+                state.selectedSlotKey = getSlotKey(updatedContainer.block, getSurfaceStartBay(updatedContainer), updatedContainer.row_num);
+                ensureContainerHistory(updatedContainer.container_id);
+            } else {
+                state.selectedContainerId = null;
+                state.selectedSlotKey = null;
+            }
         }
+        renderDashboard();
     }
-    renderDashboard();
     showToast(data.message || "Operation completed.", "success");
 }
 
@@ -1511,12 +1594,18 @@ async function executeRestowMove(containerIdOrMoveTarget, targetSlotKey) {
     state.draggingContainerId = null;
     state.dragOverSlotKey = null;
     state.pendingMove = null;
-    await loadInventory({ silent: true });
+    applyOptimisticRestow(moveTarget.movingContainer.container_id, {
+        block: moveTarget.target.block,
+        bay: moveTarget.target.bay,
+        row: moveTarget.target.row,
+        tier: moveTarget.nextTier,
+    });
     state.selectedSlotKey = resolvedTargetSlotKey;
     state.selectedContainerId = moveTarget.movingContainer.container_id;
     state.selectedBlock = moveTarget.target.block;
     ensureSlotVisible(moveTarget.target.block, moveTarget.target.bay, moveTarget.target.row);
     renderDashboard();
+    refreshInventoryInBackground();
     showToast(data.message || "Container moved.", "success");
 }
 

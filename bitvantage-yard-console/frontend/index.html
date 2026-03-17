@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BitVantage Yard Console</title>
     <link rel="icon" type="image/svg+xml" href="assets/bitvantage-logo.svg">
-    <link rel="stylesheet" href="styles.css?v=20260316-2">
+    <link rel="stylesheet" href="styles.css?v=20260317-5">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -20,24 +20,15 @@
             <form id="login-form" class="auth-form">
                 <div class="form-group">
                     <label for="login-username">Username</label>
-                    <input id="login-username" type="text" autocomplete="username" required placeholder="manager">
+                    <input id="login-username" type="text" autocomplete="username" required placeholder="Enter username">
                 </div>
                 <div class="form-group">
                     <label for="login-password">Password</label>
-                    <input id="login-password" type="password" autocomplete="current-password" required placeholder="manager123">
+                    <input id="login-password" type="password" autocomplete="current-password" required placeholder="Enter password">
                 </div>
                 <button type="submit" class="btn-primary auth-submit">Enter BitVantage</button>
             </form>
-            <div class="auth-demo">
-                <span class="detail-label">Demo Accounts</span>
-                <div class="demo-users">
-                    <button type="button" class="demo-user-btn" data-username="admin" data-password="admin123">admin / admin123</button>
-                    <button type="button" class="demo-user-btn" data-username="manager" data-password="manager123">manager / manager123</button>
-                    <button type="button" class="demo-user-btn" data-username="planner" data-password="planner123">planner / planner123</button>
-                    <button type="button" class="demo-user-btn" data-username="yard01" data-password="yard123">yard01 / yard123</button>
-                </div>
-                <p id="auth-error" class="auth-error hidden"></p>
-            </div>
+            <p id="auth-error" class="auth-error hidden"></p>
         </div>
     </div>
 
@@ -473,6 +464,6 @@
     </div>
 
     <div id="toast" class="toast hidden"></div>
-    <script src="app.js?v=20260316-2"></script>
+    <script src="app.js?v=20260317-5"></script>
 </body>
 </html>

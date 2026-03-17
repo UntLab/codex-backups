@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Dict, Tuple
 
 import requests
@@ -7,15 +8,35 @@ import requests
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-N8N_WEBHOOK_URL_BASE = os.getenv("N8N_WEBHOOK_URL_BASE", "http://localhost:5678/webhook-test")
+
+def load_project_env() -> None:
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+load_project_env()
+
+N8N_WEBHOOK_URL_BASE = os.getenv("N8N_WEBHOOK_URL_BASE", "").strip()
 N8N_MOVEMENT_ENDPOINT = os.getenv("N8N_MOVEMENT_ENDPOINT", "terminal-movement")
 
 
 def send_to_n8n(endpoint: str, payload: Dict) -> Tuple[bool, str, int]:
+    if not N8N_WEBHOOK_URL_BASE:
+        logger.info("n8n webhook is not configured. Skipping delivery.")
+        return False, "n8n webhook disabled", 0
     url = f"{N8N_WEBHOOK_URL_BASE.rstrip('/')}/{endpoint.lstrip('/')}"
     logger.info(f"Sending data to n8n webhook: {url}")
     try:
-        response = requests.post(url, json=payload, timeout=5)
+        response = requests.post(url, json=payload, timeout=2)
         response.raise_for_status()
         return True, response.text or "Success", response.status_code
     except requests.exceptions.RequestException as exc:
