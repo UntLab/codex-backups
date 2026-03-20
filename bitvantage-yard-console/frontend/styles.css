@@ -624,7 +624,6 @@ button, input, select {
 .mt-4 { margin-top: 1.5rem; }
 
 .dashboard-layout {
-    display: flex;
     flex-direction: column;
     gap: var(--panel-gap);
 }
