@@ -18,8 +18,15 @@ const state = {
     authToken: null,
     currentUser: null,
     layoutConfig: [],
+    terminalLayout: [],
     slotCatalog: [],
+    slotRecordsByBlock: new Map(),
+    slotRecordIndex: new Map(),
     inventory: [],
+    containerById: new Map(),
+    blockContainersIndex: new Map(),
+    slotContainersIndex: new Map(),
+    surfaceOccupancyByBlock: new Map(),
     logs: [],
     adminUsers: [],
     selectedAdminUser: null,
@@ -109,6 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupTabs();
     setupForms();
     setupDashboardActions();
+    setupBayGridInteractions();
     setupSidebar();
     setupTargetMoveWidget();
     setupAuth();
@@ -233,29 +241,29 @@ function setupDashboardActions() {
     on("refresh-dashboard", "click", () => loadInventory());
     on("tier-visibility", "change", (event) => {
         state.tierVisibility = event.target.value;
-        renderDashboard();
+        renderDashboard({ stats: false, overview: false, inventory: false, activity: false, liveStatus: false });
     });
     on("viewport-size", "change", (event) => {
         state.viewportSize = Number(event.target.value);
         state.rowPage = 0;
         state.bayPage = 0;
-        renderDashboard();
+        renderDashboard({ stats: false, overview: false, inventory: false, activity: false, liveStatus: false });
     });
     on("rows-prev", "click", () => {
         state.rowPage = Math.max(0, state.rowPage - 1);
-        renderDashboard();
+        renderDashboard({ stats: false, overview: false, inventory: false, activity: false, liveStatus: false });
     });
     on("rows-next", "click", () => {
         state.rowPage += 1;
-        renderDashboard();
+        renderDashboard({ stats: false, overview: false, inventory: false, activity: false, liveStatus: false });
     });
     on("bays-prev", "click", () => {
         state.bayPage = Math.max(0, state.bayPage - 1);
-        renderDashboard();
+        renderDashboard({ stats: false, overview: false, inventory: false, activity: false, liveStatus: false });
     });
     on("bays-next", "click", () => {
         state.bayPage += 1;
-        renderDashboard();
+        renderDashboard({ stats: false, overview: false, inventory: false, activity: false, liveStatus: false });
     });
     on("viewport-jump", "submit", (event) => {
         event.preventDefault();
@@ -274,7 +282,7 @@ function setupDashboardActions() {
         if (state.moveDraftContainerId) {
             state.moveDraftContainerId = null;
             resetMoveTargetDraft();
-            renderInspector();
+            renderSelectionState(false);
             showToast("Move mode cancelled.", "success");
             return;
         }
@@ -285,9 +293,52 @@ function setupDashboardActions() {
         state.moveDraftContainerId = state.selectedContainerId;
         const selectedContainer = findContainerById(state.selectedContainerId);
         resetMoveTargetDraft(selectedContainer?.row_num || "");
-        renderInspector();
+        renderSelectionState(false);
         showToast("Enter target bay and row, then press OK.", "success");
         openTab("dashboard-tab");
+    });
+}
+
+function setupBayGridInteractions() {
+    const bayGrid = document.getElementById("bay-grid");
+    if (!bayGrid) return;
+
+    const getCell = (event) => event.target.closest(".slot-cell");
+
+    bayGrid.addEventListener("click", (event) => {
+        const cell = getCell(event);
+        if (!cell) return;
+        handleSlotClick(cell.dataset.slotKey, cell.dataset.containerId || null);
+    });
+
+    bayGrid.addEventListener("dragstart", (event) => {
+        const cell = getCell(event);
+        if (!cell || !cell.dataset.containerId) return;
+        handleSlotDragStart(event);
+    });
+
+    bayGrid.addEventListener("dragend", (event) => {
+        const cell = getCell(event);
+        if (!cell) return;
+        handleSlotDragEnd();
+    });
+
+    bayGrid.addEventListener("dragover", (event) => {
+        const cell = getCell(event);
+        if (!cell) return;
+        handleSlotDragOver(event);
+    });
+
+    bayGrid.addEventListener("dragleave", (event) => {
+        const cell = getCell(event);
+        if (!cell) return;
+        handleSlotDragLeave(event);
+    });
+
+    bayGrid.addEventListener("drop", (event) => {
+        const cell = getCell(event);
+        if (!cell) return;
+        handleSlotDrop(event);
     });
 }
 
@@ -615,8 +666,15 @@ function resetSessionState() {
     state.authToken = null;
     state.currentUser = null;
     state.layoutConfig = [];
+    state.terminalLayout = [];
     state.slotCatalog = [];
+    state.slotRecordsByBlock = new Map();
+    state.slotRecordIndex = new Map();
     state.inventory = [];
+    state.containerById = new Map();
+    state.blockContainersIndex = new Map();
+    state.slotContainersIndex = new Map();
+    state.surfaceOccupancyByBlock = new Map();
     state.logs = [];
     state.adminUsers = [];
     state.selectedAdminUser = null;
@@ -788,6 +846,91 @@ function stopAutoRefresh() {
     state.autoRefreshTimer = null;
 }
 
+function normalizeLayoutRecords() {
+    const base = (state.layoutConfig.length ? state.layoutConfig : DEFAULT_LAYOUT).map((layout) => ({
+        block: layout.block,
+        label: layout.label || `Block ${layout.block}`,
+        bayCount: Number(layout.bay_count || layout.bayCount),
+        rowCount: Number(layout.row_count || layout.rowCount),
+        tierCount: Number(layout.tier_count || layout.tierCount),
+        equipment: layout.equipment || null,
+        footprint: layout.footprint || `${layout.bay_count || layout.bayCount} x ${layout.row_count || layout.rowCount}`,
+    }));
+    return base.map((layout) => ({
+        ...layout,
+        bays: Array.from({ length: layout.bayCount }, (_, index) => formatBayNumber(index * 2 + 1)),
+        rows: Array.from({ length: layout.rowCount }, (_, index) => index + 1),
+    }));
+}
+
+function rebuildDerivedState() {
+    state.terminalLayout = normalizeLayoutRecords();
+
+    const rawSlotsByBlock = new Map();
+    state.slotCatalog.forEach((slot) => {
+        const block = slot.block;
+        const normalized = {
+            ...slot,
+            bay: formatBayNumber(slot.bay),
+            row_num: Number(slot.row_num),
+            max_tiers: Number(slot.max_tiers ?? 4),
+        };
+        if (!rawSlotsByBlock.has(block)) rawSlotsByBlock.set(block, []);
+        rawSlotsByBlock.get(block).push(normalized);
+    });
+
+    state.slotRecordsByBlock = new Map();
+    state.slotRecordIndex = new Map();
+    state.containerById = new Map();
+    state.terminalLayout.forEach((layout) => {
+        const provided = rawSlotsByBlock.get(layout.block);
+        const blockSlots = provided?.length
+            ? provided
+            : layout.rows.flatMap((row) => layout.bays.map((bay) => getFallbackSlotRecord(layout.block, bay, row)));
+        state.slotRecordsByBlock.set(layout.block, blockSlots);
+        blockSlots.forEach((slot) => {
+            state.slotRecordIndex.set(getSlotKey(layout.block, slot.bay, Number(slot.row_num)), slot);
+        });
+    });
+
+    state.blockContainersIndex = new Map();
+    state.slotContainersIndex = new Map();
+    state.surfaceOccupancyByBlock = new Map();
+
+    state.inventory.forEach((container) => {
+        const normalized = {
+            ...container,
+            bay: formatBayNumber(container.bay),
+            row_num: Number(container.row_num),
+            tier_num: Number(container.tier_num),
+        };
+        state.containerById.set(normalized.container_id, normalized);
+        if (!state.blockContainersIndex.has(normalized.block)) state.blockContainersIndex.set(normalized.block, []);
+        state.blockContainersIndex.get(normalized.block).push(normalized);
+
+        if (!state.surfaceOccupancyByBlock.has(normalized.block)) state.surfaceOccupancyByBlock.set(normalized.block, new Set());
+        getSurfaceBaysForPlacement(normalized.block, normalized.bay, normalized.container_type).forEach((surfaceBay) => {
+            const slotKey = getSlotKey(normalized.block, surfaceBay, normalized.row_num);
+            if (!state.slotContainersIndex.has(slotKey)) state.slotContainersIndex.set(slotKey, []);
+            state.slotContainersIndex.get(slotKey).push(normalized);
+            state.surfaceOccupancyByBlock.get(normalized.block).add(slotKey);
+        });
+    });
+
+    state.blockContainersIndex.forEach((containers, block) => {
+        containers.sort((a, b) => a.position_code.localeCompare(b.position_code));
+        state.blockContainersIndex.set(block, containers);
+    });
+    state.slotContainersIndex.forEach((containers, key) => {
+        containers.sort((a, b) => a.tier_num - b.tier_num);
+        state.slotContainersIndex.set(key, containers);
+    });
+}
+
+function isAdminTabActive() {
+    return Boolean(document.getElementById("admin-tab")?.classList.contains("active"));
+}
+
 function applyInventoryPayload(payload = {}) {
     state.layoutConfig = Array.isArray(payload.layout) ? payload.layout : [];
     state.slotCatalog = Array.isArray(payload.slots) ? payload.slots : [];
@@ -795,6 +938,7 @@ function applyInventoryPayload(payload = {}) {
         ? payload.inventory.map((item) => ({ ...item, row_num: Number(item.row_num), tier_num: Number(item.tier_num) }))
         : [];
     state.logs = Array.isArray(payload.logs) ? payload.logs : [];
+    rebuildDerivedState();
     state.lastLoadedAt = new Date();
     preserveSelection();
 
@@ -803,10 +947,10 @@ function applyInventoryPayload(payload = {}) {
         if (state.selectedAdminUser) {
             state.selectedAdminUser = state.adminUsers.find((user) => user.username === state.selectedAdminUser.username) || null;
         }
-        renderAdminUsers();
+        if (isAdminTabActive()) renderAdminUsers();
     }
 
-    if (state.currentUser?.permissions?.includes("manage_layout")) {
+    if (state.currentUser?.permissions?.includes("manage_layout") && isAdminTabActive()) {
         renderAdminBlocks();
         renderAdminSlots();
     }
@@ -917,6 +1061,7 @@ async function submitForm(form, url, payload) {
         if (form.id === "restow-form") state.formDirty.restow = false;
         if (typeof form.reset === "function") form.reset();
         if (form.id === "restow-form") {
+            const previousBlock = state.selectedBlock;
             applyOptimisticRestow(payload.container_id, {
                 block: payload.new_block,
                 bay: payload.new_bay,
@@ -928,7 +1073,13 @@ async function submitForm(form, url, payload) {
             state.selectedSlotKey = getSlotKey(payload.new_block, ["40ft", "45ft"].includes(findContainerById(payload.container_id)?.container_type) ? getSurfaceStartBayFromWideAnchor(String(payload.new_bay).padStart(2, "0")) : String(payload.new_bay).padStart(2, "0"), payload.new_row);
             ensureSlotVisible(payload.new_block, String(payload.new_bay).padStart(2, "0"), payload.new_row);
             ensureContainerHistory(payload.container_id);
-            renderDashboard();
+            renderDashboard({
+                stats: true,
+                overview: true,
+                inventory: false,
+                activity: false,
+                liveStatus: false,
+            });
             refreshInventoryInBackground();
         } else {
             await loadInventory({ silent: true });
@@ -968,24 +1119,12 @@ function preserveSelection() {
 }
 
 function getTerminalLayout() {
-    const base = (state.layoutConfig.length ? state.layoutConfig : DEFAULT_LAYOUT).map((layout) => ({
-        block: layout.block,
-        label: layout.label || `Block ${layout.block}`,
-        bayCount: layout.bay_count || layout.bayCount,
-        rowCount: layout.row_count || layout.rowCount,
-        tierCount: layout.tier_count || layout.tierCount,
-        equipment: layout.equipment || null,
-        footprint: layout.footprint || `${layout.bay_count || layout.bayCount} x ${layout.row_count || layout.rowCount}`,
-    }));
-    return base.map((layout) => ({
-        ...layout,
-        bays: Array.from({ length: layout.bayCount }, (_, index) => formatBayNumber(index * 2 + 1)),
-        rows: Array.from({ length: layout.rowCount }, (_, index) => index + 1),
-    }));
+    return state.terminalLayout.length ? state.terminalLayout : normalizeLayoutRecords();
 }
 
 function getBlockLayout(block) {
-    return getTerminalLayout().find((item) => item.block === block) || getTerminalLayout()[0];
+    const layouts = getTerminalLayout();
+    return layouts.find((item) => item.block === block) || layouts[0];
 }
 
 function formatBayNumber(value) {
@@ -1073,36 +1212,20 @@ function getActualBayForPlacement(containerType, block, surfaceBay) {
 }
 
 function getSurfaceOccupancy(block) {
-    const occupied = new Set();
-    getBlockContainers(block).forEach((container) => {
-        getSurfaceBaysForPlacement(container.block, container.bay, container.container_type).forEach((surfaceBay) => {
-            occupied.add(getSlotKey(container.block, surfaceBay, container.row_num));
-        });
-    });
-    return occupied;
+    return state.surfaceOccupancyByBlock.get(block) || new Set();
 }
 
 function getAnchoredWideContainer(block, bay, row) {
     if (!canStartWideAtSurfaceBay(block, bay)) return null;
-    const anchorBay = getWideAnchorBayFromSurfaceBay(bay);
-    const anchorContainer = getVisibleContainerForSlot(
-        state.inventory
-            .filter((container) => container.block === block && container.bay === anchorBay && Number(container.row_num) === Number(row))
-            .sort((a, b) => a.tier_num - b.tier_num)
-    );
-    return canContainerSpanHorizontal(anchorContainer) ? anchorContainer : null;
+    const anchorContainer = getVisibleContainerForSlot(getSlotContainers(block, bay, row));
+    return canContainerSpanHorizontal(anchorContainer) && getSurfaceStartBay(anchorContainer) === formatBayNumber(bay) ? anchorContainer : null;
 }
 
 function getCoveringWideContainer(block, bay, row) {
     const bayNum = parseBayNumber(bay);
     if (bayNum % 4 !== 3) return null;
-    const anchorBay = formatBayNumber(bayNum - 1);
-    const anchorContainer = getVisibleContainerForSlot(
-        state.inventory
-            .filter((container) => container.block === block && container.bay === anchorBay && Number(container.row_num) === Number(row))
-            .sort((a, b) => a.tier_num - b.tier_num)
-    );
-    return canContainerSpanHorizontal(anchorContainer) ? anchorContainer : null;
+    const coveringContainer = getVisibleContainerForSlot(getSlotContainers(block, bay, row));
+    return canContainerSpanHorizontal(coveringContainer) && getSurfaceStartBay(coveringContainer) !== formatBayNumber(bay) ? coveringContainer : null;
 }
 
 function getSurfacePositionCodes(block, bay, row, tier, containerType) {
@@ -1110,25 +1233,23 @@ function getSurfacePositionCodes(block, bay, row, tier, containerType) {
 }
 
 function findPositionOccupant(block, bay, row, tier, containerType, excludeContainerId = null) {
-    const targetCodes = new Set(getSurfacePositionCodes(block, bay, row, tier, containerType));
-    return state.inventory.find((container) => {
-        if (excludeContainerId && container.container_id === excludeContainerId) return false;
-        return getSurfacePositionCodes(container.block, container.bay, container.row_num, container.tier_num, container.container_type)
-            .some((code) => targetCodes.has(code));
-    }) || null;
+    const surfaceBays = getSurfaceBaysForPlacement(block, bay, containerType);
+    for (const surfaceBay of surfaceBays) {
+        const slotContainers = getSlotContainers(block, surfaceBay, row);
+        const occupant = slotContainers.find((container) => {
+            if (excludeContainerId && container.container_id === excludeContainerId) return false;
+            return Number(container.tier_num) === Number(tier);
+        });
+        if (occupant) return occupant;
+    }
+    return null;
 }
 
 function hasSupportingBase(block, bay, row, tier, containerType) {
     if (tier <= 1) return true;
-    const supportCodes = new Set(getSurfacePositionCodes(block, bay, row, tier - 1, containerType));
-    return [...supportCodes].every((targetCode) =>
-        state.inventory.some((container) =>
-            container.block === block &&
-            Number(container.row_num) === Number(row) &&
-            Number(container.tier_num) === tier - 1 &&
-            getSurfacePositionCodes(container.block, container.bay, container.row_num, container.tier_num, container.container_type)
-                .some((code) => code === targetCode)
-        )
+    const supportSurfaceBays = getSurfaceBaysForPlacement(block, bay, containerType);
+    return supportSurfaceBays.every((surfaceBay) =>
+        getSlotContainers(block, surfaceBay, row).some((container) => Number(container.tier_num) === Number(tier) - 1)
     );
 }
 
@@ -1146,27 +1267,53 @@ function getFallbackSlotRecord(block, bay, row) {
 }
 
 function getBlockSlotRecords(block) {
-    const slots = state.slotCatalog.filter((slot) => slot.block === block);
-    if (slots.length) return slots;
-    const layout = getBlockLayout(block);
-    const fallback = [];
-    layout.rows.forEach((row) => layout.bays.forEach((bay) => fallback.push(getFallbackSlotRecord(block, bay, row))));
-    return fallback;
+    return state.slotRecordsByBlock.get(block) || [];
 }
 
 function getSlotRecord(block, bay, row) {
-    return getBlockSlotRecords(block).find((slot) => slot.bay === bay && Number(slot.row_num) === Number(row)) || getFallbackSlotRecord(block, bay, row);
+    return state.slotRecordIndex.get(getSlotKey(block, bay, row)) || getFallbackSlotRecord(block, bay, row);
 }
 
-function renderDashboard() {
-    clampViewport();
-    renderStats();
-    renderOverview();
-    renderBayGrid();
-    renderInventoryTable();
+function renderDashboard(options = {}) {
+    const {
+        clamp = true,
+        stats = true,
+        overview = true,
+        bayGrid = true,
+        inventory = true,
+        inspector = true,
+        activity = true,
+        liveStatus = true,
+    } = options;
+
+    if (clamp) clampViewport();
+    if (stats) renderStats();
+    if (overview) renderOverview();
+    if (bayGrid) renderBayGrid();
+    if (inventory) renderInventoryTable();
+    if (inspector) renderInspector();
+    if (activity) renderActivityFeed();
+    if (liveStatus) updateLiveStatus();
+}
+
+function refreshBayGridSelectionState() {
+    const bayGrid = document.getElementById("bay-grid");
+    if (!bayGrid) return;
+    bayGrid.querySelectorAll(".slot-cell").forEach((cell) => {
+        const slotKey = cell.dataset.slotKey;
+        cell.classList.toggle("is-selected", state.selectedSlotKey === slotKey);
+        cell.classList.toggle("is-target", Boolean(state.moveDraftContainerId && state.selectedSlotKey === slotKey));
+        cell.classList.toggle("is-drop-target", state.dragOverSlotKey === slotKey);
+    });
+}
+
+function renderSelectionState(blockChanged = false) {
+    if (blockChanged) {
+        renderDashboard({ inventory: false, activity: false });
+        return;
+    }
+    refreshBayGridSelectionState();
     renderInspector();
-    renderActivityFeed();
-    updateLiveStatus();
 }
 
 function renderStats() {
@@ -1380,16 +1527,6 @@ function renderBayGrid() {
     bayGrid.style.gridTemplateColumns = `72px repeat(${visibleBays.length}, minmax(${bayCellWidth}px, 1fr))`;
     bayGrid.style.gridAutoRows = visibleBays.length > 12 ? "72px" : visibleBays.length > 10 ? "78px" : "88px";
     bayGrid.innerHTML = items.join("");
-    bayGrid.querySelectorAll(".slot-cell").forEach((cell) => {
-        cell.addEventListener("click", () => handleSlotClick(cell.dataset.slotKey, cell.dataset.containerId || null));
-        if (cell.dataset.containerId) {
-            cell.addEventListener("dragstart", handleSlotDragStart);
-            cell.addEventListener("dragend", handleSlotDragEnd);
-        }
-        cell.addEventListener("dragover", handleSlotDragOver);
-        cell.addEventListener("dragleave", handleSlotDragLeave);
-        cell.addEventListener("drop", handleSlotDrop);
-    });
 }
 
 function renderSlotCell({ block, bay, row, slotRecord, slotContainers, visibleContainer, tierCount, gridColumn, gridRow, spanCols, condensed = false }) {
@@ -1577,6 +1714,7 @@ function renderInventoryTable() {
     inventoryList.querySelectorAll("tr[data-container-id]").forEach((row) => row.addEventListener("click", () => {
         const container = findContainerById(row.dataset.containerId);
         if (!container) return;
+        const previousBlock = state.selectedBlock;
         state.selectedBlock = container.block;
         state.selectedSlotKey = getSlotKey(container.block, getSurfaceStartBay(container), container.row_num);
         state.selectedContainerId = container.container_id;
@@ -1584,7 +1722,12 @@ function renderInventoryTable() {
         ensureContainerHistory(container.container_id);
         syncFormsFromSelection();
         openTab("dashboard-tab");
-        renderDashboard();
+        renderDashboard({
+            stats: previousBlock !== state.selectedBlock,
+            overview: previousBlock !== state.selectedBlock,
+            inventory: false,
+            activity: false,
+        });
     }));
 }
 
@@ -1854,6 +1997,7 @@ function handleSlotClick(slotKey, containerId) {
         handleMoveTargetSelection(slotKey);
         return;
     }
+    const previousBlock = state.selectedBlock;
     state.selectedSlotKey = slotKey;
     const parsed = parseSlotKey(slotKey);
     state.selectedBlock = parsed.block;
@@ -1863,7 +2007,7 @@ function handleSlotClick(slotKey, containerId) {
     state.selectedContainerId = visibleContainer ? visibleContainer.container_id : null;
     if (state.selectedContainerId) ensureContainerHistory(state.selectedContainerId);
     syncFormsFromSelection();
-    renderDashboard();
+    renderSelectionState(previousBlock !== state.selectedBlock);
 }
 
 function handleMoveTargetSelection(targetSlotKey) {
@@ -1872,13 +2016,14 @@ function handleMoveTargetSelection(targetSlotKey) {
         showToast(moveTarget.error, "error");
         return;
     }
+    const previousBlock = state.selectedBlock;
     state.selectedSlotKey = targetSlotKey;
     state.selectedContainerId = moveTarget.movingContainer.container_id;
     state.selectedBlock = moveTarget.target.block;
     ensureSlotVisible(moveTarget.target.block, moveTarget.target.bay, moveTarget.target.row);
     state.moveTargetDraft.bay = moveTarget.target.bay;
     state.moveTargetDraft.row = String(moveTarget.target.row);
-    renderDashboard();
+    renderSelectionState(previousBlock !== state.selectedBlock);
     showToast(`Target prepared: ${moveTarget.target.block}-${moveTarget.target.bay}-${moveTarget.target.row}-${moveTarget.nextTier}. Press OK to move.`, "success");
 }
 
@@ -1954,7 +2099,7 @@ async function executeRestowMove(containerIdOrMoveTarget, targetSlotKey, options
         state.selectedContainerId = moveTarget.movingContainer.container_id;
         state.selectedBlock = moveTarget.target.block;
         ensureSlotVisible(moveTarget.target.block, moveTarget.target.bay, moveTarget.target.row);
-        renderDashboard();
+        renderDashboard({ inventory: false, activity: false, liveStatus: false });
         refreshInventoryInBackground();
         showToast(data.message || "Container moved.", "success");
     } finally {
@@ -1963,7 +2108,8 @@ async function executeRestowMove(containerIdOrMoveTarget, targetSlotKey, options
 }
 
 function handleSlotDragStart(event) {
-    const containerId = event.currentTarget.dataset.containerId;
+    const cell = event.target.closest(".slot-cell");
+    const containerId = cell?.dataset.containerId;
     if (!containerId) {
         event.preventDefault();
         return;
@@ -1974,37 +2120,43 @@ function handleSlotDragStart(event) {
         event.dataTransfer.setData("text/plain", containerId);
         event.dataTransfer.effectAllowed = "move";
     }
-    renderInspector();
+    renderSelectionState(false);
 }
 
 function handleSlotDragEnd() {
     state.draggingContainerId = null;
     state.dragOverSlotKey = null;
     if (!state.pendingMove) state.moveDraftContainerId = null;
-    renderDashboard();
+    renderSelectionState(false);
 }
 
 function handleSlotDragOver(event) {
     if (!state.draggingContainerId) return;
-    const slotKey = event.currentTarget.dataset.slotKey;
+    const cell = event.target.closest(".slot-cell");
+    const slotKey = cell?.dataset.slotKey;
+    if (!slotKey) return;
     if (!canDropContainerOnSlot(state.draggingContainerId, slotKey)) return;
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
     state.dragOverSlotKey = slotKey;
-    event.currentTarget.classList.add("is-drop-target");
+    cell.classList.add("is-drop-target");
 }
 
 function handleSlotDragLeave(event) {
-    if (state.dragOverSlotKey === event.currentTarget.dataset.slotKey) {
+    const cell = event.target.closest(".slot-cell");
+    if (!cell) return;
+    if (state.dragOverSlotKey === cell.dataset.slotKey) {
         state.dragOverSlotKey = null;
-        event.currentTarget.classList.remove("is-drop-target");
+        cell.classList.remove("is-drop-target");
     }
 }
 
 function handleSlotDrop(event) {
     if (!state.draggingContainerId) return;
+    const cell = event.target.closest(".slot-cell");
+    if (!cell) return;
     event.preventDefault();
-    const moveTarget = resolveMoveTarget(state.draggingContainerId, event.currentTarget.dataset.slotKey);
+    const moveTarget = resolveMoveTarget(state.draggingContainerId, cell.dataset.slotKey);
     if (moveTarget.error) {
         showToast(moveTarget.error, "error");
         return;
@@ -2100,26 +2252,22 @@ function jumpToSlot() {
     const surfaceBay = isSurfaceBay(bay) ? bay : getSurfaceStartBayFromWideAnchor(bay);
     const row = rowValue;
     const slotKey = getSlotKey(layout.block, surfaceBay, row);
+    const previousBlock = state.selectedBlock;
     state.selectedSlotKey = slotKey;
     state.selectedContainerId = getVisibleContainerForSlot(getSlotContainers(layout.block, surfaceBay, row))?.container_id || null;
     ensureSlotVisible(layout.block, bay, row);
     if (state.selectedContainerId) ensureContainerHistory(state.selectedContainerId);
     syncFormsFromSelection();
-    renderDashboard();
+    renderSelectionState(previousBlock !== state.selectedBlock);
     showToast(`Jumped to ${layout.block}-${bay}-${row}.`, "success");
 }
 
 function getBlockContainers(block) {
-    return state.inventory.filter((container) => container.block === block);
+    return state.blockContainersIndex.get(block) || [];
 }
 
 function getSlotContainers(block, bay, row) {
-    return state.inventory
-        .filter((container) => {
-            if (container.block !== block || Number(container.row_num) !== Number(row)) return false;
-            return getSurfaceBaysForPlacement(container.block, container.bay, container.container_type).includes(formatBayNumber(bay));
-        })
-        .sort((a, b) => a.tier_num - b.tier_num);
+    return state.slotContainersIndex.get(getSlotKey(block, bay, row)) || [];
 }
 
 function getSelectedContainer(slotContainers) {
@@ -2145,7 +2293,7 @@ function getNextAvailableTier(slotContainers, tierCount) {
 }
 
 function findContainerById(containerId) {
-    return state.inventory.find((container) => container.container_id === containerId) || null;
+    return state.containerById.get(containerId) || null;
 }
 
 function getSlotKey(block, bay, row) {
