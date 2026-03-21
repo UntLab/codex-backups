@@ -15,8 +15,8 @@
 ### 1.2 Настроить Git и доступ к GitHub
 
 ```bash
-git config --global user.name "Israfil Ibrahim"
-git config --global user.email "i@2ai.az"
+git config --global user.name "UntLab | Automation"
+git config --global user.email "46091280+UntLab@users.noreply.github.com"
 ```
 
 **Вариант A — HTTPS (проще):**
@@ -47,7 +47,7 @@ cat ~/.ssh/id_ed25519.pub
 cd C:\Users\ТВОЙ_ПОЛЬЗОВАТЕЛЬ
 
 # Клон (все проекты в одном репо — submodules не нужны)
-git clone https://github.com/UntLab/codex-backups.git progects
+git clone https://github.com/UntLab/codex.git progects
 cd progects
 ```
 
@@ -87,17 +87,14 @@ C:\Users\ТВОЙ_ПОЛЬЗОВАТЕЛЬ\progects\
 
 ```bash
 cd C:\Users\ТВОЙ_ПОЛЬЗОВАТЕЛЬ\progects
-git pull origin main
+bash ./scripts/direct-pull.sh main
 ```
 
 ### Отправить изменения на GitHub (push)
 
 ```bash
 cd C:\Users\ТВОЙ_ПОЛЬЗОВАТЕЛЬ\progects
-git add -A
-git status
-git commit -m "backup: описание изменений"
-git push origin main
+bash ./scripts/direct-push.sh main
 ```
 
 ---
@@ -109,9 +106,7 @@ git push origin main
 ```batch
 @echo off
 cd /d "%~dp0.."
-git add -A
-git commit -m "backup: %date% %time%" || echo No changes
-git push origin main
+bash ./scripts/direct-push.sh main
 echo Done.
 pause
 ```
@@ -120,10 +115,7 @@ pause
 
 ```powershell
 Set-Location (Split-Path $PSScriptRoot)\..
-git add -A
-$msg = "backup: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-git commit -m $msg 2>$null; if ($LASTEXITCODE -ne 0) { Write-Host "No changes to commit" }
-git push origin main
+bash ./scripts/direct-push.sh main
 Write-Host "Done."
 ```
 
@@ -162,9 +154,9 @@ New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills"
 
 | Действие          | Mac                              | Windows                       |
 |-------------------|----------------------------------|-------------------------------|
-| Бэкап на GitHub   | `./scripts/backup-push.sh main`  | `git add -A && git commit -m "..." && git push` |
-| Скачать изменения | `./scripts/restore-sync.sh main` | `git pull origin main`        |
-| Репо              | `~/GPT/progects`                 | `C:\Users\...\progects`       |
+| Бэкап на GitHub   | `bash scripts/direct-push.sh main`  | `bash ./scripts/direct-push.sh main` |
+| Скачать изменения | `bash scripts/direct-pull.sh main` | `bash ./scripts/direct-pull.sh main` |
+| Репо              | `<repo-root>`                    | `C:\Users\...\progects`       |
 
 ---
 
@@ -173,13 +165,9 @@ New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.codex\skills"
 **Конфликт при pull:**
 
 ```bash
-git stash
-git pull origin main
-git stash pop
-# Разрешить конфликты вручную, затем:
 git add -A
-git commit -m "merge: resolved conflicts"
-git push origin main
+git commit -m "wip: save local work"
+bash ./scripts/direct-pull.sh main
 ```
 
 **Забыл пароль / токен:**
@@ -193,5 +181,5 @@ git push origin main
 
 1. Установи Git, настрой имя/email и доступ к GitHub.
 2. Сделай `git clone` в `progects`.
-3. Работай в `progects`, делай `git add`, `commit`, `push` после изменений.
-4. На другом ПК — `git pull`.
+3. Работай прямо в `progects`, затем запускай `bash ./scripts/direct-push.sh main`.
+4. На другом ПК перед началом работы запускай `bash ./scripts/direct-pull.sh main`.

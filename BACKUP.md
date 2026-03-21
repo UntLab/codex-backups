@@ -1,40 +1,37 @@
-# GitHub backup workflow
+# GitHub sync workflow
 
-## 1) One-time setup
+## Основной режим работы
+
+Если проекты редактируются прямо внутри этого репозитория, используй только прямой git-sync:
+
+### Перед началом работы на любой машине
 ```bash
-cd /Users/ais/GPT/progects
-./scripts/setup-github-backup.sh <YOUR_GITHUB_REPO_URL> main
-git add -A
-git commit -m "Initial backup"
-git push -u origin main
+cd <repo-root>
+bash scripts/direct-pull.sh main
 ```
 
-## 2) After each work session (backup)
+### После завершения работы
 ```bash
-cd /Users/ais/GPT/progects
-./scripts/backup-push.sh main
+cd <repo-root>
+bash scripts/direct-push.sh main
 ```
 
-## 3) Sync/restore on this or another computer
-Option A (new machine):
+Или с явным сообщением коммита:
 ```bash
-git clone <YOUR_GITHUB_REPO_URL> /Users/ais/GPT/progects
+cd <repo-root>
+bash scripts/direct-push.sh main "sync: short description"
 ```
 
-Option B (existing local folder):
+## Первый запуск на новой машине
+
 ```bash
-cd /Users/ais/GPT/progects
-./scripts/restore-sync.sh main
+git clone https://github.com/UntLab/codex.git <folder>
+cd <folder>
+bash scripts/direct-pull.sh main
 ```
 
-## Optional hotkeys (zsh aliases)
-Add to `~/.zshrc`:
-```bash
-alias bkup='cd /Users/ais/GPT/progects && ./scripts/backup-push.sh main'
-alias bsync='cd /Users/ais/GPT/progects && ./scripts/restore-sync.sh main'
-```
+## Важно
 
-Then reload shell:
-```bash
-source ~/.zshrc
-```
+- Не используй `bash scripts/backup-push.sh` как основной сценарий, если работаешь прямо внутри этого репозитория.
+- `backup-push.sh` вызывает `sync-sources.sh`, а тот зеркалит внешние папки через `rsync --delete`.
+- Такой режим подходит только для старого mirror-backup сценария, но не для прямой ежедневной работы в `codex`.
