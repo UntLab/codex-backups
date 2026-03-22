@@ -73,7 +73,7 @@ export default function TeamPage() {
         memberOf: data.memberOf || null,
       });
     } catch {
-      console.error("Ошибка загрузки команд");
+      console.error("Failed to load teams");
     } finally {
       setLoading(false);
     }
@@ -94,10 +94,10 @@ export default function TeamPage() {
         setCreateName("");
       } else {
         const err = await res.json();
-        alert(err.error || "Ошибка создания команды");
+        alert(err.error || "Failed to create team");
       }
     } catch {
-      alert("Ошибка создания команды");
+      alert("Failed to create team");
     } finally {
       setCreating(false);
     }
@@ -118,10 +118,10 @@ export default function TeamPage() {
         setInviteEmail("");
       } else {
         const err = await res.json();
-        alert(err.error || "Ошибка приглашения");
+        alert(err.error || "Invitation failed");
       }
     } catch {
-      alert("Ошибка приглашения");
+      alert("Invitation failed");
     } finally {
       setInviting(false);
     }
@@ -151,10 +151,10 @@ export default function TeamPage() {
         cancelEdit();
       } else {
         const err = await res.json();
-        alert(err.error || "Ошибка сохранения");
+        alert(err.error || "Save failed");
       }
     } catch {
-      alert("Ошибка сохранения");
+      alert("Save failed");
     } finally {
       setSaving(false);
     }
@@ -189,7 +189,7 @@ export default function TeamPage() {
               href="/dashboard"
               className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
             >
-              Визитки
+              Cards
             </Link>
             <span className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] hidden sm:block">
               {session?.user?.name || session?.user?.email}
@@ -199,7 +199,7 @@ export default function TeamPage() {
               className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors font-[family-name:var(--font-geist-mono)]"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Выйти</span>
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </div>
@@ -208,10 +208,10 @@ export default function TeamPage() {
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-1 font-[family-name:var(--font-geist-mono)]">
-            Команда
+            Team
           </h1>
           <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-            Управление участниками и визитками команды
+            Manage team members and their digital cards
           </p>
         </div>
 
@@ -223,10 +223,10 @@ export default function TeamPage() {
               </div>
               <div>
                 <h2 className="text-lg font-semibold font-[family-name:var(--font-geist-mono)]">
-                  Создать команду
+                  Create Team
                 </h2>
                 <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                  Команда позволяет управлять визитками сотрудников из одного аккаунта
+                  A team lets you manage employee cards from one account
                 </p>
               </div>
             </div>
@@ -235,20 +235,20 @@ export default function TeamPage() {
                 type="text"
                 value={createName}
                 onChange={(e) => setCreateName(e.target.value)}
-                placeholder="Название команды"
-                className="flex-1 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg px-4 py-2.5 text-sm font-[family-name:var(--font-geist-mono)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-neon)] transition-colors"
+                placeholder="Team name"
+                className="v2-input-compact flex-1 font-[family-name:var(--font-geist-mono)]"
               />
               <button
                 type="submit"
                 disabled={creating || !createName.trim()}
-                className="flex items-center gap-2 bg-[var(--color-neon)] text-black px-5 py-2.5 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)] disabled:cursor-not-allowed"
               >
                 {creating ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Shield className="w-4 h-4" />
                 )}
-                Создать команду
+                Create Team
               </button>
             </form>
           </div>
@@ -267,7 +267,7 @@ export default function TeamPage() {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="flex-1 bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg px-3 py-2 text-sm font-[family-name:var(--font-geist-mono)] focus:outline-none focus:border-[var(--color-neon)]"
+                      className="v2-input-compact flex-1 font-[family-name:var(--font-geist-mono)]"
                     />
                     <button
                       onClick={saveTeamName}
@@ -293,7 +293,7 @@ export default function TeamPage() {
                       {ownedTeam.name}
                     </h2>
                     <span className="text-xs text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                      Вы владелец
+                      You are the owner
                     </span>
                     <button
                       onClick={() => startEditTeam(ownedTeam)}
@@ -308,7 +308,7 @@ export default function TeamPage() {
 
             <div className="p-6">
               <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-4 font-[family-name:var(--font-geist-mono)]">
-                Участники
+                Members
               </h3>
               <div className="space-y-3 mb-6">
                 {ownedTeam.members.map((m) => (
@@ -340,7 +340,7 @@ export default function TeamPage() {
                     {m.id === ownedTeam.ownerId && (
                       <span className="flex items-center gap-1 text-xs text-[var(--color-neon)] font-[family-name:var(--font-geist-mono)]">
                         <Crown className="w-3.5 h-3.5" />
-                        Владелец
+                        Owner
                       </span>
                     )}
                   </div>
@@ -348,7 +348,7 @@ export default function TeamPage() {
               </div>
 
               <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-3 font-[family-name:var(--font-geist-mono)]">
-                Пригласить участника
+                Invite Member
               </h3>
               <form
                 onSubmit={(e) => handleInvite(e, ownedTeam.id)}
@@ -361,20 +361,20 @@ export default function TeamPage() {
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     placeholder="email@example.com"
-                    className="w-full bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded-lg pl-10 pr-4 py-2.5 text-sm font-[family-name:var(--font-geist-mono)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-neon)] transition-colors"
+                    className="v2-input-compact w-full pl-10 pr-4 font-[family-name:var(--font-geist-mono)]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={inviting || !inviteEmail.trim()}
-                  className="flex items-center gap-2 bg-[var(--color-neon)] text-black px-5 py-2.5 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)] disabled:cursor-not-allowed"
                 >
                   {inviting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <UserPlus className="w-4 h-4" />
                   )}
-                  Пригласить участника
+                  Invite Member
                 </button>
               </form>
             </div>
@@ -392,14 +392,14 @@ export default function TeamPage() {
                   {memberTeam.name}
                 </h2>
                 <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                  Вы участник этой команды
+                  You are a member of this team
                 </p>
               </div>
             </div>
             {memberTeam.owner && (
               <div className="p-4 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)]">
                 <p className="text-xs text-[var(--color-text-muted)] mb-2 font-[family-name:var(--font-geist-mono)]">
-                  Владелец команды
+                  Team Owner
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-[var(--color-neon)]/20 flex items-center justify-center">
@@ -418,7 +418,7 @@ export default function TeamPage() {
             )}
             <div className="mt-4">
               <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-3 font-[family-name:var(--font-geist-mono)]">
-                Участники команды
+                Team Members
               </h3>
               <div className="space-y-2">
                 {memberTeam.members.map((m) => (
@@ -450,7 +450,7 @@ export default function TeamPage() {
                     {m.id === memberTeam.ownerId && (
                       <span className="flex items-center gap-1 text-xs text-[var(--color-neon)] ml-auto font-[family-name:var(--font-geist-mono)]">
                         <Crown className="w-3.5 h-3.5" />
-                        Владелец
+                        Owner
                       </span>
                     )}
                   </div>

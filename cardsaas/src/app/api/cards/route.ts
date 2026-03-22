@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const cards = await prisma.card.findMany({
@@ -23,11 +23,13 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const data = await req.json();
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
     const slugBase = data.slug || data.fullName
       .toLowerCase()
@@ -66,13 +68,14 @@ export async function POST(req: NextRequest) {
         bgColor: data.bgColor || "#030305",
         tags: data.tags || [],
         webhookUrl: data.webhookUrl || null,
+        trialEndsAt,
       },
     });
 
     return NextResponse.json({ card }, { status: 201 });
   } catch {
     return NextResponse.json(
-      { error: "Ошибка при создании визитки" },
+      { error: "Failed to create card" },
       { status: 500 }
     );
   }

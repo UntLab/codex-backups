@@ -6,7 +6,14 @@ import { createPortalSession } from "@/lib/stripe";
 export async function POST() {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json(
+      { error: "Stripe is not configured" },
+      { status: 503 }
+    );
   }
 
   try {
@@ -16,7 +23,7 @@ export async function POST() {
 
     if (!subscription?.stripeCustomerId) {
       return NextResponse.json(
-        { error: "Подписка не найдена" },
+        { error: "Subscription not found" },
         { status: 404 }
       );
     }
@@ -26,9 +33,10 @@ export async function POST() {
     );
 
     return NextResponse.json({ url: portalSession.url });
-  } catch {
+  } catch (error) {
+    console.error("Stripe portal failed", error);
     return NextResponse.json(
-      { error: "Ошибка создания портала" },
+      { error: "Failed to create billing portal session" },
       { status: 500 }
     );
   }

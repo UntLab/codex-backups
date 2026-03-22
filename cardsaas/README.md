@@ -1,164 +1,184 @@
-# CardSaaS — Цифровые визитки нового поколения
+# CardSaaS - Next-Gen Digital Business Cards
 
-SaaS-платформа для создания цифровых бизнес-визиток с кибропанк-дизайном, CRM, аналитикой и командным управлением.
+CardSaaS is a SaaS platform for creating premium digital business cards with customizable themes, lead capture, analytics, team management, and external automation.
 
-## Стек технологий
+## Tech Stack
 
-- **Frontend/Backend:** Next.js 16 (App Router) + TypeScript
-- **Стили:** Tailwind CSS 4
-- **БД:** PostgreSQL + Prisma ORM 7
-- **Авторизация:** NextAuth.js v5 (Credentials)
-- **Платежи:** Stripe (подписки $10/мес за визитку)
-- **Загрузка файлов:** Cloudinary
-- **Email:** Resend
-- **QR-коды:** qrcode
-- **Иконки:** Lucide React + Font Awesome
+- Frontend / Backend: Next.js 16 (App Router) + TypeScript
+- Styling: Tailwind CSS 4
+- Database: Supabase PostgreSQL + Prisma ORM 7
+- Authentication: NextAuth.js v5 (Credentials)
+- Payments: Stripe
+- File uploads: Cloudinary
+- Email: Resend
+- QR codes: `qrcode`
+- Icons: Lucide React + Font Awesome
 
-## Полный список функций
+## External Services
 
-### Визитки
-- 3 шаблона: **Cyberpunk**, **Minimal**, **Gradient**
-- Конструктор с визуальным редактором
-- Загрузка аватара (Cloudinary) или по URL
-- Кастомные цвета (акцент + фон)
-- Соцсети: Telegram, GitHub, LinkedIn, Instagram, Facebook, Twitter/X, WhatsApp, YouTube, TikTok
-- Теги/навыки
-- Webhook для CRM (n8n и др.)
-- Кастомный домен (CNAME)
-- QR-код для каждой визитки
-- vCard экспорт (сохранение контакта)
-- Web Share API
+- Supabase: primary database for users, cards, leads, templates, teams, and subscriptions
+- n8n: webhook automation and CRM sync
+- Stripe: subscriptions and billing
+- Cloudinary: avatar and image hosting
+- Resend: transactional email delivery
+- DNS provider: custom domains for cards
 
-### CRM / Лиды
-- Форма сбора контактов на каждой визитке
-- Все лиды сохраняются в БД
-- Страница управления лидами (`/dashboard/leads`)
-- Статусы: Новый → Связались → Квалифицирован → Конвертирован / Потерян
-- Фильтры по визитке и статусу
-- Заметки к каждому лиду
-- Автоматический webhook в CRM
-- Email-уведомление о новом лиде
+## Core Features
 
-### Шаблоны
-- Системные шаблоны (предустановленные)
-- Пользовательские шаблоны (создание/сохранение)
-- Публичные шаблоны (доступны всем)
-- Применение шаблона при создании визитки
+### Cards
 
-### Команды
-- Создание команды (компания)
-- Приглашение сотрудников по email
-- Управление участниками
+- 3 themes: `Cyberpunk`, `Minimal`, `Gradient`
+- Visual card builder
+- Avatar upload through Cloudinary or external URL
+- Accent and background color customization
+- Social links: Telegram, GitHub, LinkedIn, Instagram, Facebook, Twitter/X, WhatsApp, YouTube, TikTok
+- Tags and skills
+- CRM webhook URL per card
+- Custom domain support
+- QR code generation
+- vCard export
+- Web Share API support
 
-### Платежи (Stripe)
-- $10/мес за визитку
-- Автоматическая активация при оплате
-- Блокировка при просрочке
-- Stripe Customer Portal
-- Webhook обработка всех событий
+### Leads / CRM
 
-### Email-уведомления (Resend)
-- Новый лид
-- Просроченная оплата
-- Еженедельный отчёт
+- Lead capture form on every card
+- Leads stored in Supabase
+- Leads dashboard at `/dashboard/leads`
+- Lead statuses: `new`, `contacted`, `qualified`, `converted`, `lost`
+- Filters by card and status
+- Lead notes
+- Webhook dispatch to CRM / n8n
+- Email notification hook support
 
-### Аналитика
-- Подсчёт просмотров
-- Статистика за день/неделю/месяц
+### Templates
 
-### OG-превью
-- Динамическая генерация OG-картинок при шеринге ссылки
+- System templates
+- User templates
+- Public templates
+- Apply template settings when creating a new card
 
-## Запуск
+### Teams
+
+- Team creation
+- Member invitation by email
+- Team ownership and membership management
+
+### Billing
+
+- Monthly Stripe billing per card
+- Checkout session generation
+- Stripe customer portal
+- Stripe webhook handling
+
+### Analytics
+
+- View tracking
+- Daily / weekly / monthly analytics
+
+### OG Images
+
+- Dynamic OG image generation for shared links
+
+## Getting Started
 
 ```bash
-# 1. Установить зависимости
+# 1. Install dependencies
 npm install
 
-# 2. Скопировать .env.example → .env и заполнить
+# 2. Copy env template
 cp .env.example .env
 
-# 3. Запустить локальную БД + миграции
-npx prisma dev
+# 3. Configure Supabase connection strings in .env
 
-# 4. Запустить dev-сервер
+# 4. Apply migrations
+npx prisma migrate deploy
+
+# 5. Start the dev server
 npm run dev
 ```
 
-## Переменные окружения
+## Environment Variables
 
-| Переменная | Описание |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `AUTH_SECRET` | Секрет NextAuth |
-| `STRIPE_SECRET_KEY` | Stripe секретный ключ |
-| `STRIPE_PRICE_ID` | Stripe ID цены подписки |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook секрет |
+| Variable | Description |
+| --- | --- |
+| `DATABASE_URL` | Supabase PostgreSQL session pooler connection string |
+| `DIRECT_URL` | Supabase direct PostgreSQL connection string |
+| `AUTH_URL` | Base Auth.js / NextAuth URL |
+| `NEXTAUTH_URL` | NextAuth URL |
+| `AUTH_SECRET` | Auth.js secret |
+| `STRIPE_SECRET_KEY` | Stripe secret key |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
+| `STRIPE_PRICE_ID` | Stripe recurring price id |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret |
+| `CLOUDINARY_URL` | Cloudinary connection URL |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | Cloudinary API key |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
 | `RESEND_API_KEY` | Resend API key |
-| `FROM_EMAIL` | Email отправителя |
-| `NEXT_PUBLIC_APP_URL` | URL приложения |
+| `FROM_EMAIL` | Sender email |
+| `NEXT_PUBLIC_APP_URL` | Public application URL |
+| `WEBHOOK_AUTH_TOKEN` | Bearer token for outgoing lead webhooks |
 
-## Структура (29 маршрутов)
+## Project Structure
 
-```
+```text
 src/
 ├── app/
-│   ├── page.tsx                         # Лендинг
+│   ├── page.tsx
 │   ├── (auth)/
-│   │   ├── login/                       # Вход
-│   │   └── register/                    # Регистрация
+│   │   ├── login/
+│   │   └── register/
 │   ├── (dashboard)/dashboard/
-│   │   ├── page.tsx                     # Личный кабинет
-│   │   ├── cards/new/                   # Создание визитки
-│   │   ├── cards/[id]/edit/             # Редактирование
-│   │   ├── leads/                       # CRM / Лиды
-│   │   ├── templates/                   # Шаблоны
-│   │   └── team/                        # Команда
-│   ├── card/[slug]/                     # Публичная визитка
+│   │   ├── page.tsx
+│   │   ├── cards/new/
+│   │   ├── cards/[id]/edit/
+│   │   ├── leads/
+│   │   ├── templates/
+│   │   └── team/
+│   ├── card/[slug]/
 │   └── api/
-│       ├── auth/                        # NextAuth + регистрация
-│       ├── cards/                       # CRUD визиток
-│       ├── cards/[id]/qr/              # QR-код
-│       ├── cards/[id]/analytics/       # Аналитика
-│       ├── cards/[id]/domain/          # Кастомный домен
-│       ├── leads/                       # CRUD лидов
-│       ├── templates/                   # CRUD шаблонов
-│       ├── teams/                       # Команды + приглашения
-│       ├── stripe/                      # Checkout, Portal, Webhook
-│       ├── upload/                      # Загрузка файлов
-│       └── og/                          # OG-картинки
+│       ├── auth/
+│       ├── cards/
+│       ├── leads/
+│       ├── templates/
+│       ├── teams/
+│       ├── stripe/
+│       ├── upload/
+│       └── og/
 ├── components/
-│   ├── CyberpunkCard.tsx               # Кибропанк шаблон
-│   ├── MinimalCard.tsx                 # Минимал шаблон
-│   ├── GradientCard.tsx                # Градиент шаблон
-│   ├── CardForm.tsx                    # Конструктор визиток
-│   └── SessionProvider.tsx             # Auth провайдер
+│   ├── CyberpunkCard.tsx
+│   ├── MinimalCard.tsx
+│   ├── GradientCard.tsx
+│   ├── CardForm.tsx
+│   └── SessionProvider.tsx
 └── lib/
-    ├── auth.ts                          # NextAuth конфигурация
-    ├── prisma.ts                        # Prisma клиент
-    ├── stripe.ts                        # Stripe утилиты
-    ├── cloudinary.ts                    # Cloudinary загрузка
-    └── email.ts                         # Email (Resend)
+    ├── auth.ts
+    ├── prisma.ts
+    ├── stripe.ts
+    ├── cloudinary.ts
+    └── email.ts
 ```
 
-## Настройка Stripe
+## Stripe Setup
 
-1. Создать аккаунт на [stripe.com](https://stripe.com)
-2. Создать продукт «Digital Business Card» с ценой $10/мес
-3. Скопировать `price_id` → `STRIPE_PRICE_ID`
-4. Webhook endpoint: `{APP_URL}/api/stripe/webhook`
-5. События: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`, `customer.subscription.updated`
+1. Create a Stripe account
+2. Create a recurring product for the card subscription
+3. Copy the Stripe price id into `STRIPE_PRICE_ID`
+4. Set the webhook endpoint to `{APP_URL}/api/stripe/webhook`
+5. Subscribe to:
+   - `checkout.session.completed`
+   - `invoice.paid`
+   - `invoice.payment_failed`
+   - `customer.subscription.deleted`
+   - `customer.subscription.updated`
 
-## Настройка Cloudinary
+## Cloudinary Setup
 
-1. Создать аккаунт на [cloudinary.com](https://cloudinary.com)
-2. Скопировать Cloud Name, API Key, API Secret в `.env`
+1. Create a Cloudinary account
+2. Copy either `CLOUDINARY_URL` or the individual cloud / key / secret values into `.env`
 
-## Настройка Resend
+## Resend Setup
 
-1. Создать аккаунт на [resend.com](https://resend.com)
-2. Подтвердить домен `2ai.az`
-3. Скопировать API Key в `.env`
+1. Create a Resend account
+2. Verify your sending domain
+3. Copy `RESEND_API_KEY` into `.env`

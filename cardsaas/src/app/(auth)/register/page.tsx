@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CreditCard, UserPlus, Loader2 } from "lucide-react";
+import styles from "./register.module.css";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Ошибка регистрации");
+        setError(data.error || "Registration failed");
         setLoading(false);
         return;
       }
@@ -41,64 +42,62 @@ export default function RegisterPage() {
       });
 
       if (result?.error) {
-        setError("Ошибка входа после регистрации");
+        setError("Automatic sign-in failed after registration");
         setLoading(false);
       } else {
         router.push("/dashboard");
       }
     } catch {
-      setError("Ошибка сети");
+      setError("Network error");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center px-4 cyber-grid">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] bg-[var(--color-neon-danger)] opacity-[0.03] rounded-full blur-[100px]" />
+    <div className={styles.page}>
+      <div className={styles.orbLeft} />
+      <div className={styles.orbRight} />
+
+      <div className={styles.header}>
+        <Link href="/" className={styles.brand}>
+          <div className={styles.brandIcon}>
+            <CreditCard className={styles.brandIconSvg} />
+          </div>
+          <span className={styles.brandText}>
+            v.<span className={styles.brandAccent}>2ai</span>
+          </span>
+        </Link>
+        <h1 className={styles.title}>Create Account</h1>
+        <p className={styles.subtitle}>
+          Create an account to start managing digital cards
+        </p>
       </div>
 
-      <div className="relative z-10 w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-8 h-8 bg-[var(--color-neon)] rounded-md flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-black" />
-            </div>
-            <span className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-              Card<span className="text-[var(--color-neon)]">SaaS</span>
-            </span>
-          </Link>
-          <h1 className="text-2xl font-bold mb-2">Регистрация</h1>
-          <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-            [AUTH.REGISTER] Создайте аккаунт для работы с визитками
-          </p>
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8"
-        >
+      <div className={styles.cardWrap}>
+        <div className={styles.cardGlow} />
+        <div className={styles.card}>
+        <form onSubmit={handleSubmit} className={styles.form}>
           {error && (
-            <div className="mb-4 p-3 rounded-lg bg-[var(--color-neon-danger)]/10 border border-[var(--color-neon-danger)]/30 text-sm text-[var(--color-neon-danger)] font-[family-name:var(--font-geist-mono)]">
-              [ERROR] {error}
+            <div className={styles.error}>
+              {error}
             </div>
           )}
 
-          <div className="mb-4">
-            <label className="block text-xs text-[var(--color-text-muted)] mb-2 font-[family-name:var(--font-geist-mono)] uppercase">
-              Имя
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Name
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)] text-white font-[family-name:var(--font-geist-mono)] text-sm focus:border-[var(--color-neon)] focus:shadow-[0_0_10px_rgba(0,255,204,0.2)] outline-none transition-all placeholder:text-[var(--color-text-muted)]/50"
-              placeholder="Ваше имя"
+              className={styles.input}
+              placeholder="Your name"
             />
           </div>
 
-          <div className="mb-4">
-            <label className="block text-xs text-[var(--color-text-muted)] mb-2 font-[family-name:var(--font-geist-mono)] uppercase">
+          <div className={styles.field}>
+            <label className={styles.label}>
               Email *
             </label>
             <input
@@ -106,14 +105,14 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)] text-white font-[family-name:var(--font-geist-mono)] text-sm focus:border-[var(--color-neon)] focus:shadow-[0_0_10px_rgba(0,255,204,0.2)] outline-none transition-all placeholder:text-[var(--color-text-muted)]/50"
+              className={styles.input}
               placeholder="user@example.com"
             />
           </div>
 
-          <div className="mb-6">
-            <label className="block text-xs text-[var(--color-text-muted)] mb-2 font-[family-name:var(--font-geist-mono)] uppercase">
-              Пароль *
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Password *
             </label>
             <input
               type="password"
@@ -121,34 +120,35 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-3 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)] text-white font-[family-name:var(--font-geist-mono)] text-sm focus:border-[var(--color-neon)] focus:shadow-[0_0_10px_rgba(0,255,204,0.2)] outline-none transition-all placeholder:text-[var(--color-text-muted)]/50"
-              placeholder="Минимум 6 символов"
+              className={styles.input}
+              placeholder="Minimum 6 characters"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-[var(--color-neon)] text-black py-3 rounded-lg font-bold hover:shadow-[0_0_25px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)] disabled:opacity-50"
+            className={styles.submit}
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className={styles.submitIcon} />
             ) : (
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className={styles.submitIcon} />
             )}
-            {loading ? "Создание..." : "Создать аккаунт"}
+            {loading ? "Creating..." : "Create account"}
           </button>
 
-          <p className="text-center text-sm text-[var(--color-text-muted)] mt-6">
-            Уже есть аккаунт?{" "}
+          <div className={styles.footer}>
+            Already have an account?{" "}
             <Link
               href="/login"
-              className="text-[var(--color-neon)] hover:underline"
+              className={styles.footerLink}
             >
-              Войти
+              Sign In
             </Link>
-          </p>
+          </div>
         </form>
+        </div>
       </div>
     </div>
   );

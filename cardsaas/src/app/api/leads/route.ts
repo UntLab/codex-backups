@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     if (!cardId) {
       return NextResponse.json(
-        { error: "cardId обязателен" },
+        { error: "cardId is required" },
         { status: 400 }
       );
     }
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     if (!card) {
       return NextResponse.json(
-        { error: "Визитка не найдена" },
+        { error: "Card not found" },
         { status: 404 }
       );
     }
@@ -87,12 +87,36 @@ export async function POST(req: NextRequest) {
 
     if (card.webhookUrl) {
       try {
-        await fetch(card.webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...leadData, cardName: card.fullName, cardSlug: card.slug }),
+        const webhookPayload = JSON.stringify({
+          ...leadData,
+          cardName: card.fullName,
+          cardSlug: card.slug,
         });
-      } catch {
+
+        const webhookHeaders: HeadersInit = {
+          "Content-Type": "application/json",
+          "X-V2AI-Event": "lead.created",
+        };
+
+        if (process.env.WEBHOOK_AUTH_TOKEN) {
+          webhookHeaders.Authorization = `Bearer ${process.env.WEBHOOK_AUTH_TOKEN}`;
+        }
+
+        const webhookResponse = await fetch(card.webhookUrl, {
+          method: "POST",
+          headers: webhookHeaders,
+          body: webhookPayload,
+        });
+
+        if (!webhookResponse.ok) {
+          console.error(
+            "Lead webhook failed",
+            webhookResponse.status,
+            await webhookResponse.text()
+          );
+        }
+      } catch (error) {
+        console.error("Lead webhook request failed", error);
         // webhook is non-critical
       }
     }
@@ -100,7 +124,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ lead }, { status: 201 });
   } catch {
     return NextResponse.json(
-      { error: "Ошибка сохранения лида" },
+      { error: "Failed to save lead" },
       { status: 500 }
     );
   }

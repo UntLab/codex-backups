@@ -19,17 +19,17 @@ export async function sendNewLeadNotification(
   return getResend().emails.send({
     from: FROM_EMAIL,
     to: userEmail,
-    subject: `Новый лид с визитки "${cardName}"`,
+    subject: `New lead from "${cardName}"`,
     html: `
       <div style="font-family: 'JetBrains Mono', monospace; background: #030305; color: #fff; padding: 30px; border-radius: 12px;">
-        <h2 style="color: #00ffcc; margin-bottom: 20px;">[NEW_LEAD] Новый контакт</h2>
-        <p>Кто-то оставил свои данные на визитке <strong>${cardName}</strong>:</p>
+        <h2 style="color: #00ffcc; margin-bottom: 20px;">[NEW_LEAD] New contact</h2>
+        <p>Someone shared their contact details from <strong>${cardName}</strong>:</p>
         <table style="margin: 20px 0; border-collapse: collapse;">
-          ${leadData.name ? `<tr><td style="color: #5a6b7c; padding: 5px 15px 5px 0;">Имя:</td><td>${leadData.name}</td></tr>` : ""}
-          ${leadData.phone ? `<tr><td style="color: #5a6b7c; padding: 5px 15px 5px 0;">Телефон:</td><td>${leadData.phone}</td></tr>` : ""}
+          ${leadData.name ? `<tr><td style="color: #5a6b7c; padding: 5px 15px 5px 0;">Name:</td><td>${leadData.name}</td></tr>` : ""}
+          ${leadData.phone ? `<tr><td style="color: #5a6b7c; padding: 5px 15px 5px 0;">Phone:</td><td>${leadData.phone}</td></tr>` : ""}
           ${leadData.email ? `<tr><td style="color: #5a6b7c; padding: 5px 15px 5px 0;">Email:</td><td>${leadData.email}</td></tr>` : ""}
         </table>
-        <p style="color: #5a6b7c; font-size: 12px;">Все лиды доступны в вашем дашборде.</p>
+        <p style="color: #5a6b7c; font-size: 12px;">All leads are available in your dashboard.</p>
       </div>
     `,
   });
@@ -43,13 +43,13 @@ export async function sendPaymentWarning(
   return getResend().emails.send({
     from: FROM_EMAIL,
     to: userEmail,
-    subject: `Оплата просрочена — визитка "${cardName}" заблокирована`,
+    subject: `Payment overdue — "${cardName}" has been blocked`,
     html: `
       <div style="font-family: 'JetBrains Mono', monospace; background: #030305; color: #fff; padding: 30px; border-radius: 12px;">
-        <h2 style="color: #ff003c; margin-bottom: 20px;">[ALERT] Подписка просрочена</h2>
-        <p>Визитка <strong>${cardName}</strong> (/${cardSlug}) была заблокирована из-за просроченной оплаты.</p>
-        <p style="margin-top: 15px;">Обновите платёжные данные в личном кабинете, чтобы восстановить визитку.</p>
-        <p style="color: #5a6b7c; font-size: 12px; margin-top: 20px;">CardSaaS — Цифровые визитки</p>
+        <h2 style="color: #ff003c; margin-bottom: 20px;">[ALERT] Subscription overdue</h2>
+        <p>Your card <strong>${cardName}</strong> (/${cardSlug}) was blocked because the payment is overdue.</p>
+        <p style="margin-top: 15px;">Update your billing details in the dashboard to restore the card.</p>
+        <p style="color: #5a6b7c; font-size: 12px; margin-top: 20px;">CardSaaS — Digital Business Cards</p>
       </div>
     `,
   });
@@ -69,15 +69,15 @@ export async function sendWeeklyReport(
   return getResend().emails.send({
     from: FROM_EMAIL,
     to: userEmail,
-    subject: "Еженедельный отчёт CardSaaS",
+    subject: "CardSaaS Weekly Report",
     html: `
       <div style="font-family: 'JetBrains Mono', monospace; background: #030305; color: #fff; padding: 30px; border-radius: 12px;">
-        <h2 style="color: #00ffcc; margin-bottom: 20px;">[REPORT] Статистика за неделю</h2>
+        <h2 style="color: #00ffcc; margin-bottom: 20px;">[REPORT] Weekly stats</h2>
         <table style="width: 100%; border-collapse: collapse;">
           <thead><tr style="color: #5a6b7c; font-size: 12px;">
-            <th style="text-align: left; padding: 8px 15px;">Визитка</th>
-            <th style="text-align: center; padding: 8px 15px;">Просмотры</th>
-            <th style="text-align: center; padding: 8px 15px;">Лиды</th>
+            <th style="text-align: left; padding: 8px 15px;">Card</th>
+            <th style="text-align: center; padding: 8px 15px;">Views</th>
+            <th style="text-align: center; padding: 8px 15px;">Leads</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>

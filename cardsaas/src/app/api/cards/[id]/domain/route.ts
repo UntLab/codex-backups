@@ -9,7 +9,7 @@ export async function PUT(
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const card = await prisma.card.findFirst({
@@ -17,7 +17,7 @@ export async function PUT(
   });
 
   if (!card) {
-    return NextResponse.json({ error: "Визитка не найдена" }, { status: 404 });
+    return NextResponse.json({ error: "Card not found" }, { status: 404 });
   }
 
   const { domain } = await req.json();
@@ -35,7 +35,7 @@ export async function PUT(
 
     if (existing) {
       return NextResponse.json(
-        { error: "Этот домен уже привязан к другой визитке" },
+        { error: "This domain is already attached to another card" },
         { status: 409 }
       );
     }
@@ -52,7 +52,7 @@ export async function PUT(
         type: "CNAME",
         name: cleanDomain,
         value: process.env.NEXT_PUBLIC_APP_URL?.replace(/^https?:\/\//, "") || "app.cardsaas.com",
-        note: "Добавьте CNAME запись в DNS вашего домена. Верификация может занять до 24 часов.",
+        note: "Add a CNAME record in your domain DNS. Verification may take up to 24 hours.",
       },
     });
   }

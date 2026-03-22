@@ -10,7 +10,7 @@ export async function GET(
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const card = await prisma.card.findFirst({
@@ -18,7 +18,7 @@ export async function GET(
   });
 
   if (!card) {
-    return NextResponse.json({ error: "Визитка не найдена" }, { status: 404 });
+    return NextResponse.json({ error: "Card not found" }, { status: 404 });
   }
 
   const cardUrl = `${process.env.NEXT_PUBLIC_APP_URL}/card/${card.slug}`;

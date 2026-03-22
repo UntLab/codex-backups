@@ -5,7 +5,20 @@ import { uploadImage } from "@/lib/cloudinary";
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const hasCloudinaryUrl = Boolean(process.env.CLOUDINARY_URL);
+  const hasDiscreteConfig =
+    Boolean(process.env.CLOUDINARY_CLOUD_NAME) &&
+    Boolean(process.env.CLOUDINARY_API_KEY) &&
+    Boolean(process.env.CLOUDINARY_API_SECRET);
+
+  if (!hasCloudinaryUrl && !hasDiscreteConfig) {
+    return NextResponse.json(
+      { error: "Cloudinary is not configured" },
+      { status: 503 }
+    );
   }
 
   try {
@@ -13,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     if (!image || !image.startsWith("data:image")) {
       return NextResponse.json(
-        { error: "Неверный формат изображения" },
+        { error: "Invalid image format" },
         { status: 400 }
       );
     }
@@ -22,7 +35,7 @@ export async function POST(req: NextRequest) {
     const base64Size = (image.length * 3) / 4;
     if (base64Size > maxSize) {
       return NextResponse.json(
-        { error: "Файл слишком большой (макс 5MB)" },
+        { error: "File is too large (max 5MB)" },
         { status: 400 }
       );
     }
@@ -30,9 +43,10 @@ export async function POST(req: NextRequest) {
     const url = await uploadImage(image);
 
     return NextResponse.json({ url });
-  } catch {
+  } catch (error) {
+    console.error("Upload failed", error);
     return NextResponse.json(
-      { error: "Ошибка загрузки изображения" },
+      { error: "Failed to upload image" },
       { status: 500 }
     );
   }

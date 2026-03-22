@@ -9,7 +9,7 @@ export async function GET(
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const card = await prisma.card.findFirst({
@@ -21,7 +21,7 @@ export async function GET(
   });
 
   if (!card) {
-    return NextResponse.json({ error: "Визитка не найдена" }, { status: 404 });
+    return NextResponse.json({ error: "Card not found" }, { status: 404 });
   }
 
   return NextResponse.json({ card });
@@ -34,7 +34,7 @@ export async function PUT(
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const existing = await prisma.card.findFirst({
@@ -42,7 +42,7 @@ export async function PUT(
   });
 
   if (!existing) {
-    return NextResponse.json({ error: "Визитка не найдена" }, { status: 404 });
+    return NextResponse.json({ error: "Card not found" }, { status: 404 });
   }
 
   try {
@@ -54,7 +54,7 @@ export async function PUT(
       });
       if (slugTaken) {
         return NextResponse.json(
-          { error: "Этот slug уже занят" },
+          { error: "This slug is already taken" },
           { status: 409 }
         );
       }
@@ -92,7 +92,7 @@ export async function PUT(
     return NextResponse.json({ card });
   } catch {
     return NextResponse.json(
-      { error: "Ошибка обновления" },
+      { error: "Update failed" },
       { status: 500 }
     );
   }
@@ -105,7 +105,7 @@ export async function DELETE(
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const card = await prisma.card.findFirst({
@@ -113,7 +113,7 @@ export async function DELETE(
   });
 
   if (!card) {
-    return NextResponse.json({ error: "Визитка не найдена" }, { status: 404 });
+    return NextResponse.json({ error: "Card not found" }, { status: 404 });
   }
 
   await prisma.card.delete({ where: { id } });

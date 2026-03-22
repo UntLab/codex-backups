@@ -46,12 +46,12 @@ interface CardOption {
 }
 
 const STATUS_OPTIONS: { value: LeadStatus | ""; label: string }[] = [
-  { value: "", label: "Все" },
-  { value: "new", label: "Новый" },
-  { value: "contacted", label: "Связались" },
-  { value: "qualified", label: "Квалифицирован" },
-  { value: "converted", label: "Конвертирован" },
-  { value: "lost", label: "Потерян" },
+  { value: "", label: "All" },
+  { value: "new", label: "New" },
+  { value: "contacted", label: "Contacted" },
+  { value: "qualified", label: "Qualified" },
+  { value: "converted", label: "Converted" },
+  { value: "lost", label: "Lost" },
 ];
 
 const STATUS_COLORS: Record<LeadStatus, string> = {
@@ -63,11 +63,11 @@ const STATUS_COLORS: Record<LeadStatus, string> = {
 };
 
 const STATUS_LABELS: Record<LeadStatus, string> = {
-  new: "Новый",
-  contacted: "Связались",
-  qualified: "Квалифицирован",
-  converted: "Конвертирован",
-  lost: "Потерян",
+  new: "New",
+  contacted: "Contacted",
+  qualified: "Qualified",
+  converted: "Converted",
+  lost: "Lost",
 };
 
 function getWeekStart(d: Date): Date {
@@ -161,12 +161,12 @@ export default function LeadsPage() {
         prev.map((l) => (l.id === id ? { ...l, ...data.lead } : l))
       );
     } catch {
-      alert("Ошибка обновления");
+      alert("Update failed");
     }
   };
 
   const deleteLead = async (id: string) => {
-    if (!confirm("Удалить лида? Действие необратимо.")) return;
+    if (!confirm("Delete this lead? This action cannot be undone.")) return;
     setDeleting(id);
     try {
       const res = await fetch(`/api/leads/${id}`, { method: "DELETE" });
@@ -174,7 +174,7 @@ export default function LeadsPage() {
       setLeads((prev) => prev.filter((l) => l.id !== id));
       setTotal((t) => Math.max(0, t - 1));
     } catch {
-      alert("Ошибка удаления");
+      alert("Delete failed");
     } finally {
       setDeleting(null);
     }
@@ -220,7 +220,7 @@ export default function LeadsPage() {
               href="/dashboard"
               className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
             >
-              Визитки
+              Cards
             </Link>
             <span className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] hidden sm:block">
               {session?.user?.name || session?.user?.email}
@@ -230,7 +230,7 @@ export default function LeadsPage() {
               className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors font-[family-name:var(--font-geist-mono)]"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Выйти</span>
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </div>
@@ -239,9 +239,9 @@ export default function LeadsPage() {
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-2xl font-bold mb-1">Лиды</h1>
+            <h1 className="text-2xl font-bold mb-1">Leads</h1>
             <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-              [SYS.LEADS] CRM и управление контактами с ваших визиток
+              CRM and contact management from your digital cards
             </p>
           </div>
         </div>
@@ -258,7 +258,7 @@ export default function LeadsPage() {
                   {total}
                 </p>
                 <p className="text-xs text-[var(--color-text-muted)]">
-                  Всего лидов
+                  Total Leads
                 </p>
               </div>
             </div>
@@ -273,7 +273,7 @@ export default function LeadsPage() {
                   {leads.filter((l) => l.status === "new").length}
                 </p>
                 <p className="text-xs text-[var(--color-text-muted)]">
-                  Новые
+                  New
                 </p>
               </div>
             </div>
@@ -288,7 +288,7 @@ export default function LeadsPage() {
                   {thisWeekCount}
                 </p>
                 <p className="text-xs text-[var(--color-text-muted)]">
-                  За неделю
+                  This Week
                 </p>
               </div>
             </div>
@@ -304,7 +304,7 @@ export default function LeadsPage() {
               setFilterStatus(e.target.value);
               setPage(1);
             }}
-            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-neon)] focus:text-white transition-colors"
+            className="v2-input-compact w-auto min-w-[160px] font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)]"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value || "all"} value={opt.value}>
@@ -318,9 +318,9 @@ export default function LeadsPage() {
               setFilterCardId(e.target.value);
               setPage(1);
             }}
-            className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-4 py-2 text-sm font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-neon)] focus:text-white transition-colors min-w-[180px]"
+            className="v2-input-compact min-w-[220px] font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)]"
           >
-            <option value="">Все визитки</option>
+            <option value="">All cards</option>
             {cards.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.fullName} /{c.slug}
@@ -330,14 +330,14 @@ export default function LeadsPage() {
           <button
             onClick={() => fetchLeads()}
             disabled={loading}
-            className="flex items-center gap-2 bg-[var(--color-neon)]/10 border border-[var(--color-neon)]/30 text-[var(--color-neon)] px-4 py-2 rounded-lg text-sm font-[family-name:var(--font-geist-mono)] hover:bg-[var(--color-neon)]/20 transition-colors disabled:opacity-50"
+            className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)] disabled:opacity-50"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Filter className="w-4 h-4" />
             )}
-            Применить
+            Apply
           </button>
         </div>
 
@@ -350,9 +350,9 @@ export default function LeadsPage() {
           ) : leads.length === 0 ? (
             <div className="p-16 text-center">
               <Users className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Нет лидов</h3>
+              <h3 className="text-lg font-semibold mb-2">No leads yet</h3>
               <p className="text-sm text-[var(--color-text-muted)]">
-                Лиды появятся, когда кто-то оставит контакт на вашей визитке
+                Leads will appear when someone shares their contact details on your card
               </p>
             </div>
           ) : (
@@ -361,25 +361,25 @@ export default function LeadsPage() {
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
                     <th className="text-left py-4 px-6 text-xs font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Имя
+                      Name
                     </th>
                     <th className="text-left py-4 px-6 text-xs font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Телефон
+                      Phone
                     </th>
                     <th className="text-left py-4 px-6 text-xs font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] uppercase tracking-wider">
                       Email
                     </th>
                     <th className="text-left py-4 px-6 text-xs font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Визитка
+                      Card
                     </th>
                     <th className="text-left py-4 px-6 text-xs font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Статус
+                      Status
                     </th>
                     <th className="text-left py-4 px-6 text-xs font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Дата
+                      Date
                     </th>
                     <th className="text-right py-4 px-6 text-xs font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] uppercase tracking-wider">
-                      Действия
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -471,15 +471,15 @@ export default function LeadsPage() {
                                 type="text"
                                 value={notesValue}
                                 onChange={(e) => setNotesValue(e.target.value)}
-                                placeholder="Заметки..."
-                                className="bg-[var(--color-bg-base)] border border-[var(--color-border)] rounded px-2 py-1 text-sm w-48 font-[family-name:var(--font-geist-mono)] focus:outline-none focus:border-[var(--color-neon)]"
+                                placeholder="Notes..."
+                                className="v2-input-compact w-48 font-[family-name:var(--font-geist-mono)]"
                                 autoFocus
                               />
                               <button
                                 onClick={saveNotes}
                                 className="text-xs text-[var(--color-neon)] hover:underline"
                               >
-                                Сохранить
+                                Save
                               </button>
                               <button
                                 onClick={() => {
@@ -488,14 +488,14 @@ export default function LeadsPage() {
                                 }}
                                 className="text-xs text-[var(--color-text-muted)] hover:text-white"
                               >
-                                Отмена
+                                Cancel
                               </button>
                             </div>
                           ) : (
                             <button
                               onClick={() => startNotesEdit(lead)}
                               className="p-2 rounded-md border border-[var(--color-border)] hover:border-[var(--color-neon)] transition-colors text-[var(--color-text-muted)] hover:text-[var(--color-neon)]"
-                              title="Заметки"
+                              title="Notes"
                             >
                               <MessageSquare className="w-4 h-4" />
                             </button>
@@ -504,7 +504,7 @@ export default function LeadsPage() {
                             onClick={() => deleteLead(lead.id)}
                             disabled={deleting === lead.id}
                             className="p-2 rounded-md border border-[var(--color-border)] hover:border-[var(--color-neon-danger)] hover:text-[var(--color-neon-danger)] transition-colors text-[var(--color-text-muted)] disabled:opacity-50"
-                            title="Удалить"
+                            title="Delete"
                           >
                             {deleting === lead.id ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -529,7 +529,7 @@ export default function LeadsPage() {
               disabled={page === 1}
               className="px-4 py-2 rounded-lg border border-[var(--color-border)] text-sm font-[family-name:var(--font-geist-mono)] hover:border-[var(--color-neon)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Назад
+              Previous
             </button>
             <span className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
               {page} / {Math.ceil(total / limit)}
@@ -539,7 +539,7 @@ export default function LeadsPage() {
               disabled={page >= Math.ceil(total / limit)}
               className="px-4 py-2 rounded-lg border border-[var(--color-border)] text-sm font-[family-name:var(--font-geist-mono)] hover:border-[var(--color-neon)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Вперёд
+              Next
             </button>
           </div>
         )}

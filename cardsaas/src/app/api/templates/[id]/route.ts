@@ -9,7 +9,7 @@ export async function DELETE(
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const template = await prisma.cardTemplate.findFirst({
@@ -18,7 +18,7 @@ export async function DELETE(
 
   if (!template) {
     return NextResponse.json(
-      { error: "Шаблон не найден или нельзя удалить" },
+      { error: "Template not found or cannot be deleted" },
       { status: 404 }
     );
   }

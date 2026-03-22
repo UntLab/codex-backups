@@ -9,7 +9,7 @@ export async function PATCH(
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const lead = await prisma.lead.findFirst({
@@ -17,7 +17,7 @@ export async function PATCH(
   });
 
   if (!lead) {
-    return NextResponse.json({ error: "Лид не найден" }, { status: 404 });
+    return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   }
 
   const { status, notes } = await req.json();
@@ -40,7 +40,7 @@ export async function DELETE(
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const lead = await prisma.lead.findFirst({
@@ -48,7 +48,7 @@ export async function DELETE(
   });
 
   if (!lead) {
-    return NextResponse.json({ error: "Лид не найден" }, { status: 404 });
+    return NextResponse.json({ error: "Lead not found" }, { status: 404 });
   }
 
   await prisma.lead.delete({ where: { id } });

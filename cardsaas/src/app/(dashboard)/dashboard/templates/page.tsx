@@ -32,9 +32,9 @@ interface Template {
 }
 
 const THEME_OPTIONS = [
-  { value: "cyberpunk", label: "Киберпанк" },
-  { value: "minimal", label: "Минимализм" },
-  { value: "gradient", label: "Градиент" },
+  { value: "cyberpunk", label: "Cyberpunk" },
+  { value: "minimal", label: "Minimal" },
+  { value: "gradient", label: "Gradient" },
 ];
 
 const FONT_OPTIONS = [
@@ -43,11 +43,9 @@ const FONT_OPTIONS = [
   { value: "Roboto", label: "Roboto" },
 ];
 
-const inputClass =
-  "w-full px-4 py-3 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)] text-white font-[family-name:var(--font-geist-mono)] text-sm focus:border-[var(--color-neon)] focus:shadow-[0_0_10px_rgba(0,255,204,0.2)] outline-none transition-all placeholder:text-[var(--color-text-muted)]/50";
+const inputClass = "v2-input-compact";
 
-const labelClass =
-  "block text-xs text-[var(--color-text-muted)] mb-2 font-[family-name:var(--font-geist-mono)] uppercase";
+const labelClass = "v2-label";
 
 export default function TemplatesPage() {
   const { data: session, status } = useSession();
@@ -86,20 +84,20 @@ export default function TemplatesPage() {
       const data = await res.json();
       setTemplates(data.templates || []);
     } catch {
-      console.error("Не удалось загрузить шаблоны");
+      console.error("Failed to load templates");
     } finally {
       setLoading(false);
     }
   };
 
   const deleteTemplate = async (id: string) => {
-    if (!confirm("Удалить шаблон? Действие необратимо.")) return;
+    if (!confirm("Delete this template? This action cannot be undone.")) return;
     setDeleting(id);
     try {
       await fetch(`/api/templates/${id}`, { method: "DELETE" });
       setTemplates((prev) => prev.filter((t) => t.id !== id));
     } catch {
-      alert("Ошибка удаления");
+      alert("Delete failed");
     } finally {
       setDeleting(null);
     }
@@ -118,7 +116,7 @@ export default function TemplatesPage() {
       setUseToast(t.id);
       setTimeout(() => setUseToast(null), 2500);
     } catch {
-      alert("Применить настройки при создании визитки");
+      alert("Template copied. Apply it when creating a new card.");
     }
   };
 
@@ -145,10 +143,10 @@ export default function TemplatesPage() {
           isPublic: false,
         });
       } else {
-        alert(data.error || "Ошибка создания шаблона");
+        alert(data.error || "Failed to create template");
       }
     } catch {
-      alert("Ошибка создания шаблона");
+      alert("Failed to create template");
     } finally {
       setCreateLoading(false);
     }
@@ -158,9 +156,9 @@ export default function TemplatesPage() {
   const myTemplates = templates.filter((t) => !t.isSystem);
 
   const getBadge = (t: Template) => {
-    if (t.isSystem) return "Системный";
-    if (t.isPublic) return "Публичный";
-    return "Личный";
+    if (t.isSystem) return "System";
+    if (t.isPublic) return "Public";
+    return "Private";
   };
 
   const getBadgeClass = (t: Template) => {
@@ -194,7 +192,7 @@ export default function TemplatesPage() {
               href="/dashboard"
               className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
             >
-              Дашборд
+              Dashboard
             </Link>
             <span className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] hidden sm:block">
               {session?.user?.name || session?.user?.email}
@@ -204,7 +202,7 @@ export default function TemplatesPage() {
               className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors font-[family-name:var(--font-geist-mono)]"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Выйти</span>
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </div>
@@ -214,26 +212,26 @@ export default function TemplatesPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold mb-1 font-[family-name:var(--font-geist-mono)]">
-              Шаблоны визиток
+              Card Templates
             </h1>
             <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-              Галерея и управление шаблонами дизайна
+              Browse and manage reusable design templates
             </p>
           </div>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 bg-[var(--color-neon)] text-black px-5 py-2.5 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)]"
+            className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)]"
           >
             <Plus className="w-4 h-4" />
-            Создать шаблон
+            Create Template
           </button>
         </div>
 
-        {/* Системные шаблоны */}
+        {/* System templates */}
         <section className="mb-12">
           <h2 className="text-lg font-bold mb-4 font-[family-name:var(--font-geist-mono)] flex items-center gap-2">
             <Palette className="w-5 h-5 text-[var(--color-neon)]" />
-            Системные шаблоны
+            System Templates
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {systemTemplates.map((t) => (
@@ -251,16 +249,16 @@ export default function TemplatesPage() {
           </div>
           {systemTemplates.length === 0 && (
             <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] py-4">
-              Системных шаблонов пока нет
+              No system templates available yet
             </p>
           )}
         </section>
 
-        {/* Мои шаблоны */}
+        {/* My templates */}
         <section>
           <h2 className="text-lg font-bold mb-4 font-[family-name:var(--font-geist-mono)] flex items-center gap-2">
             <Eye className="w-5 h-5 text-[var(--color-neon)]" />
-            Мои шаблоны
+            My Templates
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {myTemplates.map((t) => (
@@ -281,14 +279,14 @@ export default function TemplatesPage() {
             <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-12 text-center">
               <Palette className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-4" />
               <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] mb-4">
-                У вас пока нет своих шаблонов
+                You do not have any templates yet
               </p>
               <button
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-2 bg-[var(--color-neon)] text-black px-6 py-3 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)]"
+                className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)]"
               >
                 <Plus className="w-4 h-4" />
-                Создать шаблон
+                Create Template
               </button>
             </div>
           )}
@@ -306,22 +304,22 @@ export default function TemplatesPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-bold mb-6 font-[family-name:var(--font-geist-mono)]">
-              Создать шаблон
+              Create Template
             </h3>
             <form onSubmit={createTemplate} className="space-y-4">
               <div>
-                <label className={labelClass}>Название</label>
+                <label className={labelClass}>Name</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   className={inputClass}
-                  placeholder="Мой шаблон"
+                  placeholder="My template"
                   required
                 />
               </div>
               <div>
-                <label className={labelClass}>Тема</label>
+                <label className={labelClass}>Theme</label>
                 <select
                   value={form.theme}
                   onChange={(e) => setForm((f) => ({ ...f, theme: e.target.value }))}
@@ -336,7 +334,7 @@ export default function TemplatesPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Акцентный цвет</label>
+                  <label className={labelClass}>Accent Color</label>
                   <div className="flex gap-2">
                     <input
                       type="color"
@@ -353,7 +351,7 @@ export default function TemplatesPage() {
                   </div>
                 </div>
                 <div>
-                  <label className={labelClass}>Фон</label>
+                  <label className={labelClass}>Background</label>
                   <div className="flex gap-2">
                     <input
                       type="color"
@@ -371,7 +369,7 @@ export default function TemplatesPage() {
                 </div>
               </div>
               <div>
-                <label className={labelClass}>Шрифт</label>
+                <label className={labelClass}>Font</label>
                 <select
                   value={form.fontFamily}
                   onChange={(e) => setForm((f) => ({ ...f, fontFamily: e.target.value }))}
@@ -386,7 +384,7 @@ export default function TemplatesPage() {
               </div>
               <div>
                 <label className={labelClass}>
-                  Скругление углов: {form.borderRadius}
+                  Corner Radius: {form.borderRadius}
                 </label>
                 <input
                   type="range"
@@ -405,28 +403,28 @@ export default function TemplatesPage() {
                   className="w-4 h-4 rounded border-[var(--color-border)] bg-[var(--color-bg-base)] accent-[var(--color-neon)]"
                 />
                 <span className="text-sm font-[family-name:var(--font-geist-mono)]">
-                  Публичный шаблон
+                  Public template
                 </span>
               </label>
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
                   disabled={createLoading}
-                  className="flex-1 flex items-center justify-center gap-2 bg-[var(--color-neon)] text-black px-5 py-2.5 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)] disabled:opacity-50"
+                  className="v2-button-compact flex-1 text-sm font-[family-name:var(--font-geist-mono)] disabled:opacity-50"
                 >
                   {createLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Plus className="w-4 h-4" />
                   )}
-                  Создать
+                  Create
                 </button>
                 <button
                   type="button"
                   onClick={() => !createLoading && setModalOpen(false)}
-                  className="px-5 py-2.5 rounded-lg border border-[var(--color-border)] text-[var(--color-text-muted)] hover:text-white hover:border-[var(--color-neon)] transition-all font-[family-name:var(--font-geist-mono)] text-sm"
+                  className="v2-link-button text-sm font-[family-name:var(--font-geist-mono)]"
                 >
-                  Отмена
+                  Cancel
                 </button>
               </div>
             </form>
@@ -497,12 +495,12 @@ function TemplateCard({
             {useToast === t.id ? (
               <>
                 <Copy className="w-3 h-3" />
-                Скопировано! Применить при создании визитки
+                Copied! Apply it when creating a new card
               </>
             ) : (
               <>
                 <Copy className="w-3 h-3" />
-                Использовать
+                Use Template
               </>
             )}
           </button>

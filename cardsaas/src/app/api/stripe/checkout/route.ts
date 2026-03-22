@@ -6,7 +6,14 @@ import { createCheckoutSession, createOrGetCustomer } from "@/lib/stripe";
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id || !session.user.email) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_PRICE_ID) {
+    return NextResponse.json(
+      { error: "Stripe is not configured" },
+      { status: 503 }
+    );
   }
 
   try {
@@ -19,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     if (!card) {
       return NextResponse.json(
-        { error: "Визитка не найдена" },
+        { error: "Card not found" },
         { status: 404 }
       );
     }
@@ -49,9 +56,10 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ url: checkoutSession.url });
-  } catch {
+  } catch (error) {
+    console.error("Stripe checkout failed", error);
     return NextResponse.json(
-      { error: "Ошибка создания сессии оплаты" },
+      { error: "Failed to create checkout session" },
       { status: 500 }
     );
   }

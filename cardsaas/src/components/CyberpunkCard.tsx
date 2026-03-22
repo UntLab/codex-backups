@@ -136,7 +136,7 @@ END:VCARD`.replace(/\n{2,}/g, "\n");
       try { await navigator.share(shareData); } catch { /* cancelled */ }
     } else {
       await navigator.clipboard.writeText(url);
-      alert("Ссылка скопирована!");
+      alert("Link copied!");
     }
   }, [card.fullName]);
 
@@ -148,7 +148,7 @@ END:VCARD`.replace(/\n{2,}/g, "\n");
     formData.forEach((v, k) => { data[k] = v as string; });
 
     if (!data.phone) {
-      alert("Телефон обязателен");
+      alert("Phone is required");
       return;
     }
 

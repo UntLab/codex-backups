@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     );
   } catch {
     return NextResponse.json(
-      { error: "Неверная подпись вебхука" },
+      { error: "Invalid webhook signature" },
       { status: 400 }
     );
   }

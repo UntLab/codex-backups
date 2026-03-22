@@ -8,14 +8,14 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email и пароль обязательны" },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: "Пароль должен быть минимум 6 символов" },
+        { error: "Password must be at least 6 characters" },
         { status: 400 }
       );
     }
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json(
-        { error: "Пользователь с таким email уже существует" },
+        { error: "A user with this email already exists" },
         { status: 409 }
       );
     }
@@ -38,9 +38,10 @@ export async function POST(req: NextRequest) {
       { user: { id: user.id, name: user.name, email: user.email } },
       { status: 201 }
     );
-  } catch {
+  } catch (error) {
+    console.error("Register failed", error);
     return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
               letterSpacing: 1,
             }}
           >
-            CardSaaS — Цифровые визитки
+            CardSaaS — Digital Business Cards
           </div>
         </div>
       </div>

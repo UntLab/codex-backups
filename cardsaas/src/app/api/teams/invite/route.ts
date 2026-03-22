@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { teamId, email } = await req.json();
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
   if (!team) {
     return NextResponse.json(
-      { error: "Команда не найдена или вы не владелец" },
+      { error: "Team not found or you are not the owner" },
       { status: 403 }
     );
   }
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   if (!userToInvite) {
     return NextResponse.json(
-      { error: "Пользователь с таким email не найден. Он должен сначала зарегистрироваться." },
+      { error: "No user found with this email. The user must register first." },
       { status: 404 }
     );
   }

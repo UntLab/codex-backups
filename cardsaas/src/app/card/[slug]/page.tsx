@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const card = await prisma.card.findUnique({ where: { slug } });
 
-  if (!card) return { title: "Визитка не найдена" };
+  if (!card) return { title: "Card not found" };
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -65,9 +65,9 @@ export default async function CardPage({ params }: Props) {
             [BLOCKED]
           </div>
           <p className="text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-            Эта визитка временно недоступна.
+            This card is temporarily unavailable.
             <br />
-            Подписка неактивна.
+            Billing access is being finalized.
           </p>
         </div>
       </div>

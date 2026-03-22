@@ -8,6 +8,7 @@ node_modules/
 .next/
 out/
 .vercel/
+cardsaas/.playwright-cli/
 
 # n8n-prompt-manager: exclude large binaries (kept in sync-sources)
 n8n-prompt-manager/*.zip

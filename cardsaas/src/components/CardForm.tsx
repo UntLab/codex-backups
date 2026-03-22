@@ -63,11 +63,13 @@ interface CardFormProps {
   mode: "create" | "edit";
 }
 
-const inputClass =
-  "w-full px-4 py-3 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)] text-white font-[family-name:var(--font-geist-mono)] text-sm focus:border-[var(--color-neon)] focus:shadow-[0_0_10px_rgba(0,255,204,0.2)] outline-none transition-all placeholder:text-[var(--color-text-muted)]/50";
+type SavedTemplateSettings = Partial<
+  Pick<CardFormData, "theme" | "accentColor" | "bgColor">
+>;
 
-const labelClass =
-  "block text-xs text-[var(--color-text-muted)] mb-2 font-[family-name:var(--font-geist-mono)] uppercase";
+const inputClass = "v2-input";
+
+const labelClass = "v2-label";
 
 export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
   const router = useRouter();
@@ -79,6 +81,16 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
   const [tagsInput, setTagsInput] = useState(
     initialData?.tags?.join(", ") || ""
   );
+  const [savedTemplateSettings] = useState<SavedTemplateSettings | null>(() => {
+    if (mode !== "create" || typeof window === "undefined") return null;
+
+    try {
+      const saved = localStorage.getItem("cardTemplateSettings");
+      return saved ? (JSON.parse(saved) as SavedTemplateSettings) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const [form, setForm] = useState<CardFormData>({
     fullName: initialData?.fullName || "",
@@ -99,9 +111,11 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
     tiktok: initialData?.tiktok || "",
     youtube: initialData?.youtube || "",
     twitter: initialData?.twitter || "",
-    theme: initialData?.theme || "cyberpunk",
-    accentColor: initialData?.accentColor || "#00ffcc",
-    bgColor: initialData?.bgColor || "#030305",
+    theme: savedTemplateSettings?.theme || initialData?.theme || "cyberpunk",
+    accentColor:
+      savedTemplateSettings?.accentColor || initialData?.accentColor || "#00ffcc",
+    bgColor:
+      savedTemplateSettings?.bgColor || initialData?.bgColor || "#030305",
     tags: initialData?.tags || [],
     webhookUrl: initialData?.webhookUrl || "",
     customDomain: initialData?.customDomain || "",
@@ -113,24 +127,14 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
       .then((d) => setTemplates(d.templates || []))
       .catch(() => {});
 
-    if (mode === "create") {
+    if (mode === "create" && savedTemplateSettings) {
       try {
-        const saved = localStorage.getItem("cardTemplateSettings");
-        if (saved) {
-          const tmpl = JSON.parse(saved);
-          setForm((prev) => ({
-            ...prev,
-            theme: tmpl.theme || prev.theme,
-            accentColor: tmpl.accentColor || prev.accentColor,
-            bgColor: tmpl.bgColor || prev.bgColor,
-          }));
-          localStorage.removeItem("cardTemplateSettings");
-        }
+        localStorage.removeItem("cardTemplateSettings");
       } catch {
         // ignore
       }
     }
-  }, [mode]);
+  }, [mode, savedTemplateSettings]);
 
   const updateField = (field: keyof CardFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -149,7 +153,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      setError("Файл слишком большой (макс 5MB)");
+      setError("File is too large (max 5MB)");
       return;
     }
 
@@ -169,13 +173,13 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
         if (res.ok) {
           setForm((prev) => ({ ...prev, avatarUrl: data.url }));
         } else {
-          setError(data.error || "Ошибка загрузки");
+          setError(data.error || "Upload failed");
         }
         setUploading(false);
       };
       reader.readAsDataURL(file);
     } catch {
-      setError("Ошибка загрузки файла");
+      setError("File upload failed");
       setUploading(false);
     }
   };
@@ -213,7 +217,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Ошибка сохранения");
+        setError(data.error || "Save failed");
         setLoading(false);
         return;
       }
@@ -221,7 +225,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Ошибка сети");
+      setError("Network error");
       setLoading(false);
     }
   };
@@ -232,13 +236,13 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
-            className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
+            className="v2-link-button text-sm font-[family-name:var(--font-geist-mono)]"
           >
             <ArrowLeft className="w-4 h-4" />
-            Назад
+            Back
           </Link>
           <h1 className="text-2xl font-bold">
-            {mode === "create" ? "Новая визитка" : "Редактирование"}
+            {mode === "create" ? "New Card" : "Edit Card"}
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -246,23 +250,23 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
             <Link
               href={`/card/${form.slug}`}
               target="_blank"
-              className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-4 py-2.5 rounded-lg hover:border-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
+              className="v2-link-button text-sm font-[family-name:var(--font-geist-mono)]"
             >
               <Eye className="w-4 h-4" />
-              Превью
+              Preview
             </Link>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 bg-[var(--color-neon)] text-black px-5 py-2.5 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)] disabled:opacity-50"
+            className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)]"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Save className="w-4 h-4" />
             )}
-            {loading ? "Сохранение..." : "Сохранить"}
+            {loading ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
@@ -278,11 +282,11 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <User className="w-5 h-5 text-[var(--color-neon)]" />
-              Основная информация
+              Basic Information
             </h2>
             <div className="space-y-4">
               <div>
-                <label className={labelClass}>Полное имя *</label>
+                <label className={labelClass}>Full Name *</label>
                 <input
                   type="text"
                   value={form.fullName}
@@ -308,7 +312,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
                 </div>
               </div>
               <div>
-                <label className={labelClass}>Должность</label>
+                <label className={labelClass}>Job Title</label>
                 <input
                   type="text"
                   value={form.jobTitle}
@@ -318,7 +322,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
                 />
               </div>
               <div>
-                <label className={labelClass}>Компания</label>
+                <label className={labelClass}>Company</label>
                 <input
                   type="text"
                   value={form.company}
@@ -328,13 +332,13 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
                 />
               </div>
               <div>
-                <label className={labelClass}>О себе</label>
+                <label className={labelClass}>About</label>
                 <textarea
                   value={form.bio}
                   onChange={(e) => updateField("bio", e.target.value)}
                   className={`${inputClass} resize-none`}
                   rows={3}
-                  placeholder="Кратко о себе..."
+                  placeholder="A short bio..."
                 />
               </div>
             </div>
@@ -343,11 +347,11 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Phone className="w-5 h-5 text-[var(--color-neon)]" />
-              Контакты
+              Contacts
             </h2>
             <div className="space-y-4">
               <div>
-                <label className={labelClass}>Телефон</label>
+                <label className={labelClass}>Phone</label>
                 <input
                   type="tel"
                   value={form.phone}
@@ -367,7 +371,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
                 />
               </div>
               <div>
-                <label className={labelClass}>Веб-сайт</label>
+                <label className={labelClass}>Website</label>
                 <input
                   type="url"
                   value={form.website}
@@ -382,11 +386,11 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Hash className="w-5 h-5 text-[var(--color-neon)]" />
-              Теги, Webhook и Домен
+              Tags, Webhook, and Domain
             </h2>
             <div className="space-y-4">
               <div>
-                <label className={labelClass}>Теги (через запятую)</label>
+                <label className={labelClass}>Tags (comma-separated)</label>
                 <input
                   type="text"
                   value={tagsInput}
@@ -398,7 +402,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
               <div>
                 <label className={labelClass}>
                   <Webhook className="w-3 h-3 inline mr-1" />
-                  Webhook URL (для CRM)
+                  Webhook URL (for CRM)
                 </label>
                 <input
                   type="url"
@@ -411,7 +415,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
               <div>
                 <label className={labelClass}>
                   <Globe className="w-3 h-3 inline mr-1" />
-                  Кастомный домен
+                  Custom Domain
                 </label>
                 <input
                   type="text"
@@ -421,7 +425,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
                   placeholder="card.mycompany.com"
                 />
                 <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                  Добавьте CNAME запись в DNS вашего домена
+                  Add a CNAME record in your domain DNS
                 </p>
               </div>
             </div>
@@ -432,14 +436,14 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <ImageIcon className="w-5 h-5 text-[var(--color-neon)]" />
-              Аватар
+              Avatar
             </h2>
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 {form.avatarUrl ? (
                   <img
                     src={form.avatarUrl}
-                    alt="Аватар"
+                    alt="Avatar"
                     className="w-20 h-20 rounded-xl object-cover border border-[var(--color-border)]"
                   />
                 ) : (
@@ -452,14 +456,14 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
-                    className="flex items-center gap-2 text-sm border border-[var(--color-border)] px-4 py-2 rounded-lg hover:border-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)] disabled:opacity-50"
+                    className="v2-link-button text-sm font-[family-name:var(--font-geist-mono)] disabled:opacity-50"
                   >
                     {uploading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Upload className="w-4 h-4" />
                     )}
-                    {uploading ? "Загрузка..." : "Загрузить фото"}
+                    {uploading ? "Uploading..." : "Upload Photo"}
                   </button>
                   <input
                     ref={fileInputRef}
@@ -469,12 +473,12 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
                     className="hidden"
                   />
                   <p className="text-xs text-[var(--color-text-muted)]">
-                    JPG, PNG до 5MB
+                    JPG, PNG up to 5MB
                   </p>
                 </div>
               </div>
               <div>
-                <label className={labelClass}>Или URL аватара</label>
+                <label className={labelClass}>Or avatar URL</label>
                 <input
                   type="url"
                   value={form.avatarUrl}
@@ -489,7 +493,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-[var(--color-neon)]" />
-              Соцсети
+              Socials
             </h2>
             <div className="space-y-4">
               {[
@@ -520,14 +524,14 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Palette className="w-5 h-5 text-[var(--color-neon)]" />
-              Дизайн
+              Design
             </h2>
             <div className="space-y-4">
               {templates.length > 0 && (
                 <div>
                   <label className={labelClass}>
                     <Layers className="w-3 h-3 inline mr-1" />
-                    Применить шаблон
+                    Apply Template
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {templates.slice(0, 6).map((tmpl) => (
@@ -551,19 +555,19 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
               )}
 
               <div>
-                <label className={labelClass}>Шаблон</label>
+                <label className={labelClass}>Theme</label>
                 <select
                   value={form.theme}
                   onChange={(e) => updateField("theme", e.target.value)}
                   className={inputClass}
                 >
                   <option value="cyberpunk">Cyberpunk</option>
-                  <option value="minimal">Минималистичный</option>
-                  <option value="gradient">Градиент</option>
+                  <option value="minimal">Minimal</option>
+                  <option value="gradient">Gradient</option>
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Акцентный цвет</label>
+                <label className={labelClass}>Accent Color</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -581,7 +585,7 @@ export default function CardForm({ initialData, cardId, mode }: CardFormProps) {
                 </div>
               </div>
               <div>
-                <label className={labelClass}>Цвет фона</label>
+                <label className={labelClass}>Background Color</label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
