@@ -3,23 +3,23 @@
 Thumbs.db
 *.log
 
-# Dependencies and build output (cardsaas, pharmatech)
-node_modules/
-.next/
-out/
-.vercel/
-cardsaas/.playwright-cli/
+# Dependencies and build output inside backup copies
+backups/projects/**/node_modules/
+backups/projects/**/.next/
+backups/projects/**/out/
+backups/projects/**/.vercel/
+backups/projects/cardsaas/.playwright-cli/
 
 # n8n-prompt-manager: exclude large binaries (kept in sync-sources)
-n8n-prompt-manager/*.zip
-n8n-prompt-manager/*.app
-n8n-prompt-manager/**/*.zip
-n8n-prompt-manager/**/*.app
-n8n-prompt-manager/**/__pycache__
-n8n-prompt-manager/app.log
-n8n-prompt-manager/windows-package
+backups/projects/n8n-prompt-manager/*.zip
+backups/projects/n8n-prompt-manager/*.app
+backups/projects/n8n-prompt-manager/**/*.zip
+backups/projects/n8n-prompt-manager/**/*.app
+backups/projects/n8n-prompt-manager/**/__pycache__
+backups/projects/n8n-prompt-manager/app.log
+backups/projects/n8n-prompt-manager/windows-package
 
 # pharmatech: large archives and build artifacts
-pharmatech/*.zip
-pharmatech/.playwright-cli/
-pharmatech/pharmatech-upload/
+backups/projects/pharmatech/*.zip
+backups/projects/pharmatech/.playwright-cli/
+backups/projects/pharmatech/pharmatech-upload/
