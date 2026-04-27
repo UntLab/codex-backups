@@ -4,8 +4,19 @@ import { useEffect, useState, use } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CreditCard, LogOut, Loader2 } from "lucide-react";
+import {
+  CreditCard,
+  ExternalLink,
+  Loader2,
+  Palette,
+  ShieldCheck,
+  Sparkles,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import CardForm from "@/components/CardForm";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import shellStyles from "@/components/dashboard/dashboard-shell.module.css";
 
 export default function EditCardPage({
   params,
@@ -13,7 +24,7 @@ export default function EditCardPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [card, setCard] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,8 +49,8 @@ export default function EditCardPage({
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[var(--color-neon)] animate-spin" />
+      <div className={shellStyles.loadingPage}>
+        <Loader2 className={shellStyles.loadingSpinner} />
       </div>
     );
   }
@@ -47,32 +58,109 @@ export default function EditCardPage({
   if (!card) return null;
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] cyber-grid">
-      <nav className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[var(--color-neon)] rounded-md flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-black" />
-            </div>
-            <span className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-              Card<span className="text-[var(--color-neon)]">SaaS</span>
-            </span>
+    <DashboardShell
+      eyebrow="CARD EDITOR"
+      title={
+        <>
+          Refine the card, <span className="gradient-text">then ship the experience</span>.
+        </>
+      }
+      description="Polish the content, adjust theme-specific fields, and tighten the activation flow while we work fully on the local workspace."
+      navItems={[
+        { href: "/dashboard", label: "Cards", icon: CreditCard, active: true },
+        {
+          href: "/dashboard/leads",
+          label: "Leads",
+          icon: Users,
+          hiddenUntil: "md",
+        },
+        {
+          href: "/dashboard/templates",
+          label: "Templates",
+          icon: Palette,
+          hiddenUntil: "md",
+        },
+        {
+          href: "/dashboard/team",
+          label: "Team",
+          icon: UserPlus,
+          hiddenUntil: "lg",
+        },
+        ...(session?.user?.isAdmin
+          ? [
+              {
+                href: "/dashboard/admin",
+                label: "Admin",
+                icon: ShieldCheck,
+                hiddenUntil: "lg" as const,
+              },
+            ]
+          : []),
+      ]}
+      sessionLabel={session?.user?.name || session?.user?.email}
+      onSignOut={() => signOut({ callbackUrl: "/" })}
+      heroActions={
+        <>
+          <Link href="/dashboard" className={shellStyles.actionButtonGhost}>
+            <CreditCard className={shellStyles.buttonIcon} />
+            Back to cards
           </Link>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors"
+          <Link
+            href={`/card/${String(card.slug || "")}`}
+            target="_blank"
+            className={shellStyles.actionButton}
           >
-            <LogOut className="w-4 h-4" />
-          </button>
+            <ExternalLink className={shellStyles.buttonIcon} />
+            Preview public card
+          </Link>
+        </>
+      }
+      heroAside={
+        <div className={`${shellStyles.spotlight} glass-panel`}>
+          <p className={`mono ${shellStyles.spotlightLabel}`}>EDIT FLOW</p>
+          <h2 className={shellStyles.spotlightTitle}>
+            We can iterate the builder locally before one clean release.
+          </h2>
+          <p className={shellStyles.spotlightText}>
+            This is the safe place to simplify card editing, remove UX detours, and make the activation experience feel obvious.
+          </p>
+          <div className={shellStyles.spotlightBadges}>
+            <span className={shellStyles.spotlightBadge}>
+              <Sparkles className={shellStyles.spotlightBadgeIcon} />
+              Local preview
+            </span>
+            <span className={shellStyles.spotlightBadge}>
+              <ShieldCheck className={shellStyles.spotlightBadgeIcon} />
+              No prod risk
+            </span>
+          </div>
         </div>
-      </nav>
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <CardForm
-          mode="edit"
-          cardId={id}
-          initialData={card as Record<string, string>}
-        />
-      </main>
-    </div>
+      }
+      stats={[
+        {
+          label: "Mode",
+          value: "Edit",
+          hint: "Existing card loaded from local database.",
+        },
+        {
+          label: "Card",
+          value: String(card.fullName || "Draft"),
+          hint: "Current record under refinement.",
+          tone: "violet",
+        },
+        {
+          label: "Theme",
+          value: String(card.theme || "Unknown"),
+          hint: "Current public presentation layer.",
+          tone: "emerald",
+        },
+      ]}
+    >
+      <CardForm
+        mode="edit"
+        cardId={id}
+        initialData={card as Record<string, string>}
+      />
+    </DashboardShell>
   );
 }

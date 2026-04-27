@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { downloadCardContact } from "@/lib/card-contact";
 
 interface CardData {
   id: string;
@@ -10,8 +11,10 @@ interface CardData {
   company?: string | null;
   bio?: string | null;
   phone?: string | null;
+  secondaryPhone?: string | null;
   email?: string | null;
   website?: string | null;
+  officeAddress?: string | null;
   avatarUrl?: string | null;
   github?: string | null;
   telegram?: string | null;
@@ -96,37 +99,7 @@ export default function CyberpunkCard({ card }: { card: CardData }) {
   }, [card.phone]);
 
   const downloadVCard = useCallback(async () => {
-    const vcard = `BEGIN:VCARD
-VERSION:3.0
-N:${card.fullName.split(" ").reverse().join(";")};;;
-FN:${card.fullName}
-${card.company ? `ORG:${card.company}` : ""}
-${card.jobTitle ? `TITLE:${card.jobTitle}` : ""}
-${card.phone ? `TEL;TYPE=WORK,VOICE:${card.phone.replace(/\s/g, "")}` : ""}
-${card.email ? `EMAIL;TYPE=PREF,INTERNET:${card.email}` : ""}
-${card.website ? `URL:${card.website}` : ""}
-END:VCARD`.replace(/\n{2,}/g, "\n");
-
-    const blob = new Blob([vcard], { type: "text/vcard" });
-    const file = new File([blob], `${card.slug}.vcf`, { type: "text/vcard" });
-
-    if (navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: card.fullName });
-        return;
-      } catch {
-        // fallthrough
-      }
-    }
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${card.slug}.vcf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    await downloadCardContact(card);
   }, [card]);
 
   const shareProfile = useCallback(async () => {

@@ -4,11 +4,21 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { CreditCard, LogOut, Sparkles } from "lucide-react";
+import {
+  CreditCard,
+  Loader2,
+  ShieldCheck,
+  Sparkles,
+  UserPlus,
+  Users,
+  Wallet,
+} from "lucide-react";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import shellStyles from "@/components/dashboard/dashboard-shell.module.css";
 import { clientBillingMode, MANUAL_BILLING_MESSAGE } from "@/lib/billing";
 
 export default function BillingPage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const isManualMode = clientBillingMode === "manual";
 
@@ -18,53 +28,192 @@ export default function BillingPage() {
     }
   }, [status, router]);
 
-  if (status === "loading") return null;
+  if (status === "loading") {
+    return (
+      <div className={shellStyles.loadingPage}>
+        <Loader2 className={shellStyles.loadingSpinner} />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] cyber-grid">
-      <nav className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[var(--color-neon)] rounded-md flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-black" />
-            </div>
-            <span className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-              Card<span className="text-[var(--color-neon)]">SaaS</span>
-            </span>
+    <DashboardShell
+      eyebrow="BILLING STATE"
+      title={
+        <>
+          Access mode, <span className="gradient-text">explicitly controlled</span>.
+        </>
+      }
+      description="This surface explains how activation currently works, what is live today, and how the future billing layer will plug in once payments are enabled."
+      navItems={[
+        { href: "/dashboard", label: "Cards", icon: CreditCard },
+        {
+          href: "/dashboard/leads",
+          label: "Leads",
+          icon: Users,
+          hiddenUntil: "md",
+        },
+        {
+          href: "/dashboard/templates",
+          label: "Templates",
+          icon: Sparkles,
+          hiddenUntil: "md",
+        },
+        {
+          href: "/dashboard/team",
+          label: "Team",
+          icon: UserPlus,
+          hiddenUntil: "lg",
+        },
+        {
+          href: "/dashboard/billing",
+          label: "Billing",
+          icon: Wallet,
+          active: true,
+        },
+        ...(session?.user?.isAdmin
+          ? [
+              {
+                href: "/dashboard/admin",
+                label: "Admin",
+                icon: ShieldCheck,
+                hiddenUntil: "lg" as const,
+              },
+            ]
+          : []),
+      ]}
+      sessionLabel={session?.user?.name || session?.user?.email}
+      onSignOut={() => signOut({ callbackUrl: "/" })}
+      heroActions={
+        <>
+          <Link href="/dashboard" className={shellStyles.actionButtonGhost}>
+            <CreditCard className={shellStyles.buttonIcon} />
+            Back to dashboard
           </Link>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors font-[family-name:var(--font-geist-mono)]"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Sign out</span>
-          </button>
-        </div>
-      </nav>
-
-      <main className="max-w-4xl mx-auto px-6 py-20">
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center shadow-[0_18px_45px_rgba(5,10,28,0.35)]">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-[var(--color-neon)]/10 border border-[var(--color-neon)]/30 flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-[var(--color-neon)]" />
-          </div>
-          <h1 className="text-3xl font-bold mb-3">
-            {isManualMode ? "Manual activation" : "Billing"}
-          </h1>
-          <p className="text-[var(--color-text-muted)] max-w-2xl mx-auto leading-7">
-            {isManualMode
-              ? `${MANUAL_BILLING_MESSAGE} New cards now start in a pending state and are activated or paused manually from the admin panel.`
-              : "Paid billing is currently paused while we finalize the payment setup."}
-          </p>
-          <div className="mt-8">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 bg-[var(--color-neon)] text-black px-6 py-3 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)]"
-            >
-              Back to dashboard
+          {isManualMode && session?.user?.isAdmin ? (
+            <Link href="/dashboard/admin" className={shellStyles.actionButton}>
+              <ShieldCheck className={shellStyles.buttonIcon} />
+              Open admin queue
             </Link>
+          ) : null}
+        </>
+      }
+      heroAside={
+        <>
+          <div className={`${shellStyles.spotlight} glass-panel`}>
+            <p className={`mono ${shellStyles.spotlightLabel}`}>MODE SIGNAL</p>
+            <h2 className={shellStyles.spotlightTitle}>
+              {isManualMode ? "Manual activation is live." : "Automated billing is paused."}
+            </h2>
+            <p className={shellStyles.spotlightText}>
+              {isManualMode
+                ? `${MANUAL_BILLING_MESSAGE} New cards enter a controlled pending state and move live only after explicit admin approval.`
+                : "Paid billing is still disabled while the payment stack is deferred. The UI already reserves the space for that future layer."}
+            </p>
+            <div className={shellStyles.spotlightBadges}>
+              <span className={shellStyles.spotlightBadge}>
+                <ShieldCheck className={shellStyles.spotlightBadgeIcon} />
+                {isManualMode ? "Manual approval" : "Payments deferred"}
+              </span>
+              <span className={shellStyles.spotlightBadge}>
+                <Wallet className={shellStyles.spotlightBadgeIcon} />
+                Stripe later
+              </span>
+            </div>
+          </div>
+
+          <div className={shellStyles.metricGrid}>
+            <div className={shellStyles.metricTile}>
+              <span className={shellStyles.metricTileLabel}>Current mode</span>
+              <span className={shellStyles.metricTileValue}>
+                {isManualMode ? "Manual" : "Paused"}
+              </span>
+            </div>
+            <div className={shellStyles.metricTile}>
+              <span className={shellStyles.metricTileLabel}>Payments</span>
+              <span className={shellStyles.metricTileValue}>Later</span>
+            </div>
+          </div>
+        </>
+      }
+      stats={[
+        {
+          label: "Mode",
+          value: isManualMode ? "Manual" : "Paused",
+          hint: "Current access and billing behavior in production.",
+        },
+        {
+          label: "Activation",
+          value: isManualMode ? "Admin" : "Off",
+          hint: "How cards are made live for end users.",
+          tone: "amber",
+        },
+        {
+          label: "Payments",
+          value: "Later",
+          hint: "Stripe remains deferred for a future phase.",
+          tone: "violet",
+        },
+        {
+          label: "Readiness",
+          value: isManualMode ? "Stable" : "Queued",
+          hint: "Current product path before paid billing arrives.",
+          tone: "emerald",
+        },
+      ]}
+    >
+      <section className={`${shellStyles.surfaceCard} glass-panel`}>
+        <div className={shellStyles.surfaceHeader}>
+          <div>
+            <p className={`mono ${shellStyles.spotlightLabel}`}>CURRENT STATE</p>
+            <h2 className={shellStyles.surfaceTitle}>
+              {isManualMode ? "Manual activation workflow" : "Billing placeholder state"}
+            </h2>
+            <p className={shellStyles.surfaceDescription}>
+              {isManualMode
+                ? "This workspace is already operational without Stripe. Cards are created, reviewed by admin, and then switched to active or paused manually."
+                : "The product surface is ready for billing, but real payment collection is intentionally delayed until the Stripe account is available."}
+            </p>
           </div>
         </div>
-      </main>
-    </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <article className={`${shellStyles.surfaceCard} glass-panel`}>
+            <p className={`mono ${shellStyles.spotlightLabel}`}>1. CREATE</p>
+            <h3 className={shellStyles.surfaceTitle}>Cards start in a controlled state</h3>
+            <p className={shellStyles.surfaceDescription}>
+              New cards can be created immediately without forcing payment setup first.
+            </p>
+          </article>
+          <article className={`${shellStyles.surfaceCard} glass-panel`}>
+            <p className={`mono ${shellStyles.spotlightLabel}`}>2. REVIEW</p>
+            <h3 className={shellStyles.surfaceTitle}>Admin validates the launch</h3>
+            <p className={shellStyles.surfaceDescription}>
+              Notes, owner-level changes, and activation status are all handled inside the admin layer.
+            </p>
+          </article>
+          <article className={`${shellStyles.surfaceCard} glass-panel`}>
+            <p className={`mono ${shellStyles.spotlightLabel}`}>3. GO LIVE</p>
+            <h3 className={shellStyles.surfaceTitle}>Public access stays intentional</h3>
+            <p className={shellStyles.surfaceDescription}>
+              Only approved cards become visible until the future payment tier is introduced.
+            </p>
+          </article>
+        </div>
+
+        <div className={`${shellStyles.buttonRow} mt-6`}>
+          <Link href="/dashboard" className={shellStyles.actionButtonGhost}>
+            <CreditCard className={shellStyles.buttonIcon} />
+            Return to cards
+          </Link>
+          {isManualMode && session?.user?.isAdmin ? (
+            <Link href="/dashboard/admin" className={shellStyles.actionButton}>
+              <ShieldCheck className={shellStyles.buttonIcon} />
+              Manage activation queue
+            </Link>
+          ) : null}
+        </div>
+      </section>
+    </DashboardShell>
   );
 }

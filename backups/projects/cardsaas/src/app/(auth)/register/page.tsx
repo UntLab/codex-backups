@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CreditCard, UserPlus, Loader2 } from "lucide-react";
-import styles from "./register.module.css";
+import { UserPlus, Loader2 } from "lucide-react";
+import AuthShell from "../AuthShell";
+import styles from "../auth.module.css";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,13 +39,14 @@ export default function RegisterPage() {
         email: normalizedEmail,
         password,
         redirect: false,
+        callbackUrl: "/dashboard",
       });
 
       if (result?.error) {
         setError("Automatic sign-in failed after registration");
         setLoading(false);
       } else {
-        router.push("/dashboard");
+        window.location.assign(result?.url || "/dashboard");
       }
     } catch {
       setError("Network error");
@@ -55,28 +55,21 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className={styles.page}>
-      <div className={styles.orbLeft} />
-      <div className={styles.orbRight} />
-
-      <div className={styles.header}>
-        <Link href="/" className={styles.brand}>
-          <div className={styles.brandIcon}>
-            <CreditCard className={styles.brandIconSvg} />
-          </div>
-          <span className={styles.brandText}>
-            v.<span className={styles.brandAccent}>2ai</span>
-          </span>
-        </Link>
-        <h1 className={styles.title}>Create Account</h1>
-        <p className={styles.subtitle}>
-          Create an account to start managing digital cards
-        </p>
-      </div>
-
-      <div className={styles.cardWrap}>
-        <div className={styles.cardGlow} />
-        <div className={styles.card}>
+    <AuthShell
+      panelEyebrow="GET STARTED"
+      panelTitle="Create your workspace"
+      panelDescription="Open your private command center for digital cards, premium themes, lead capture, and future automation."
+      secondaryHref="/login"
+      secondaryLabel="Sign in"
+      footer={
+        <div className={styles.footer}>
+          Already have an account?{" "}
+          <Link href="/login" className={styles.footerLink}>
+            Sign In
+          </Link>
+        </div>
+      }
+    >
         <form onSubmit={handleSubmit} className={styles.form}>
           {error && (
             <div className={styles.error}>
@@ -93,7 +86,7 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={styles.input}
-              placeholder="Your name"
+              placeholder="Your name or team"
             />
           </div>
 
@@ -107,7 +100,7 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className={styles.input}
-              placeholder="user@example.com"
+              placeholder="name@company.com"
             />
           </div>
 
@@ -138,19 +131,7 @@ export default function RegisterPage() {
             )}
             {loading ? "Creating..." : "Create account"}
           </button>
-
-          <div className={styles.footer}>
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className={styles.footerLink}
-            >
-              Sign In
-            </Link>
-          </div>
         </form>
-        </div>
-      </div>
-    </div>
+    </AuthShell>
   );
 }

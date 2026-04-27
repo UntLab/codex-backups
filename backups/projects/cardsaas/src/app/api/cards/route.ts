@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getManualCardStatus, getServerBillingMode } from "@/lib/billing";
+import { applyFormagThemeDefaults } from "@/lib/formag";
+import { applyPrgThemeDefaults } from "@/lib/prg";
 import { prisma } from "@/lib/prisma";
+import { buildCardSlugBase } from "@/lib/slug";
 
 export async function GET() {
   const session = await auth();
@@ -33,17 +36,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const data = await req.json();
+    const data = applyPrgThemeDefaults(
+      applyFormagThemeDefaults(await req.json())
+    );
     const isManualMode = getServerBillingMode() === "manual";
     const trialEndsAt =
       !isManualMode
         ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
         : null;
 
-    const slugBase = data.slug || data.fullName
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+    const slugBase = buildCardSlugBase({
+      slug: data.slug,
+      fullName: data.fullName,
+      fallback: `card-${Date.now().toString(36)}`,
+    });
 
     let slug = slugBase;
     let counter = 1;
@@ -61,8 +67,10 @@ export async function POST(req: NextRequest) {
         company: data.company || null,
         bio: data.bio || null,
         phone: data.phone || null,
+        secondaryPhone: data.secondaryPhone || null,
         email: data.email || null,
         website: data.website || null,
+        officeAddress: data.officeAddress || null,
         avatarUrl: data.avatarUrl || null,
         github: data.github || null,
         telegram: data.telegram || null,

@@ -11,13 +11,17 @@ import {
   ExternalLink,
   Filter,
   Loader2,
-  LogOut,
   PauseCircle,
+  Pencil,
   Save,
   Search,
   ShieldCheck,
+  Sparkles,
   Users,
+  Workflow,
 } from "lucide-react";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import shellStyles from "@/components/dashboard/dashboard-shell.module.css";
 import {
   clientBillingMode,
   MANUAL_CARD_STATUS_LABELS,
@@ -340,427 +344,494 @@ export default function AdminPage() {
     }
   }
 
+  const navItems = [
+    { href: "/dashboard", label: "Cards", icon: CreditCard },
+    { href: "/dashboard/leads", label: "Leads", icon: Users, hiddenUntil: "md" as const },
+    { href: "/dashboard/admin", label: "Admin", icon: ShieldCheck, active: true },
+  ];
+
   if (status === "loading" || (loading && cards.length === 0)) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[var(--color-neon)] animate-spin" />
-      </div>
-    );
-  }
-
-  if (clientBillingMode !== "manual") {
-    return (
-      <div className="min-h-screen bg-[var(--color-bg-base)] cyber-grid">
-        <main className="max-w-3xl mx-auto px-6 py-24">
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center">
-            <ShieldCheck className="w-12 h-12 text-[var(--color-neon)] mx-auto mb-4" />
-            <h1 className="text-2xl font-bold mb-3">Admin activation is disabled</h1>
-            <p className="text-[var(--color-text-muted)]">
-              This page only works while billing mode is set to manual.
-            </p>
-            <Link
-              href="/dashboard"
-              className="inline-flex mt-6 items-center gap-2 bg-[var(--color-neon)] text-black px-5 py-2.5 rounded-lg font-bold text-sm font-[family-name:var(--font-geist-mono)]"
-            >
-              Back to dashboard
-            </Link>
-          </div>
-        </main>
+      <div className={shellStyles.loadingPage}>
+        <Loader2 className={shellStyles.loadingSpinner} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] cyber-grid">
-      <nav className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[var(--color-neon)] rounded-md flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-black" />
-            </div>
-            <span className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-              Card<span className="text-[var(--color-neon)]">SaaS</span>
-            </span>
+    <DashboardShell
+      eyebrow="ADMIN ACTIVATION LAYER"
+      title={
+        <>
+          Manual access, <span className="gradient-text">visually controlled</span>.
+        </>
+      }
+      description="Review the approval queue, move cards between pending, active, and paused, annotate decisions, and keep owner-level activation under one clean operational surface."
+      navItems={navItems}
+      sessionLabel={session?.user?.name || session?.user?.email}
+      onSignOut={() => signOut({ callbackUrl: "/" })}
+      heroActions={
+        <>
+          <Link href="/dashboard" className={shellStyles.actionButtonGhost}>
+            <CreditCard className={shellStyles.buttonIcon} />
+            Back to cards
           </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-            >
-              Cards
-            </Link>
-            <Link
-              href="/dashboard/leads"
-              className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)] hidden sm:block"
-            >
-              Leads
-            </Link>
-            <span className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] hidden md:block">
-              {session?.user?.name || session?.user?.email}
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors font-[family-name:var(--font-geist-mono)]"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign out</span>
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[var(--color-neon)]/20 bg-[var(--color-neon)]/10 text-[var(--color-neon)] text-xs font-[family-name:var(--font-geist-mono)] mb-4">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Manual activation queue
-            </div>
-            <h1 className="text-3xl font-bold mb-2">Admin control</h1>
-            <p className="text-[var(--color-text-muted)] max-w-2xl">
-              Review all cards, move them between pending, active and paused, and keep manual billing aligned with real access.
+          <Link href="/dashboard/leads" className={shellStyles.actionButtonGhost}>
+            <Users className={shellStyles.buttonIcon} />
+            Lead inbox
+          </Link>
+        </>
+      }
+      heroAside={
+        <>
+          <div className={`${shellStyles.spotlight} glass-panel`}>
+            <p className={`mono ${shellStyles.spotlightLabel}`}>QUEUE SIGNAL</p>
+            <h2 className={shellStyles.spotlightTitle}>
+              {clientBillingMode !== "manual"
+                ? "Manual activation is currently disabled."
+                : `${stats.pending} card${stats.pending === 1 ? "" : "s"} waiting for review.`}
+            </h2>
+            <p className={shellStyles.spotlightText}>
+              {clientBillingMode !== "manual"
+                ? "This screen is only active while billing mode stays in manual. Once manual mode returns, approvals and pause controls will reappear instantly."
+                : "Use owner-level actions for broad access changes, then drop to per-card notes and final status decisions where needed."}
             </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 mb-8">
-          <div className="flex flex-col xl:flex-row gap-4 xl:items-center">
-            <label className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search by card, owner, slug, company, or note"
-                className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] pl-10 pr-4 py-3 text-sm outline-none focus:border-[var(--color-neon)]"
-              />
-            </label>
-
-            <label className="flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] px-4 py-3 text-sm">
-              <Filter className="w-4 h-4 text-[var(--color-text-muted)]" />
-              <select
-                value={statusFilter}
-                onChange={(event) =>
-                  setStatusFilter(event.target.value as "all" | ManualCardStatus)
-                }
-                className="bg-transparent outline-none"
-              >
-                {FILTER_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {(searchQuery || statusFilter !== "all") && (
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setStatusFilter("all");
-                }}
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] px-4 py-3 text-sm font-[family-name:var(--font-geist-mono)] hover:border-[var(--color-neon)] transition-colors"
-              >
-                Clear filters
-              </button>
-            )}
-          </div>
-
-          <p className="mt-3 text-xs text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-            Showing {filteredCards.length} of {cards.length} cards across {ownerGroups.length} owners
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-            <p className="text-xs uppercase tracking-[0.25em] text-[var(--color-text-muted)] mb-2">Total</p>
-            <p className="text-3xl font-bold font-[family-name:var(--font-geist-mono)]">{stats.total}</p>
-          </div>
-          <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
-            <p className="text-xs uppercase tracking-[0.25em] text-amber-200/80 mb-2">Pending</p>
-            <p className="text-3xl font-bold font-[family-name:var(--font-geist-mono)] text-amber-200">{stats.pending}</p>
-          </div>
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-            <p className="text-xs uppercase tracking-[0.25em] text-emerald-200/80 mb-2">Active</p>
-            <p className="text-3xl font-bold font-[family-name:var(--font-geist-mono)] text-emerald-200">{stats.active}</p>
-          </div>
-          <div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-5">
-            <p className="text-xs uppercase tracking-[0.25em] text-rose-200/80 mb-2">Paused</p>
-            <p className="text-3xl font-bold font-[family-name:var(--font-geist-mono)] text-rose-200">{stats.paused}</p>
-          </div>
-        </div>
-
-        {ownerGroups.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Users className="w-4 h-4 text-[var(--color-neon)]" />
-              <h2 className="text-lg font-semibold">Owner-level controls</h2>
+            <div className={shellStyles.spotlightBadges}>
+              <span className={shellStyles.spotlightBadge}>
+                <ShieldCheck className={shellStyles.spotlightBadgeIcon} />
+                Manual billing
+              </span>
+              <span className={shellStyles.spotlightBadge}>
+                <Workflow className={shellStyles.spotlightBadgeIcon} />
+                Queue + audit
+              </span>
             </div>
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              {ownerGroups.map((group) => (
-                <section
-                  key={group.userId}
-                  className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
+          </div>
+
+          <div className={shellStyles.metricGrid}>
+            <div className={shellStyles.metricTile}>
+              <span className={shellStyles.metricTileLabel}>Owners in scope</span>
+              <span className={shellStyles.metricTileValue}>{ownerGroups.length}</span>
+            </div>
+            <div className={shellStyles.metricTile}>
+              <span className={shellStyles.metricTileLabel}>Recent events</span>
+              <span className={shellStyles.metricTileValue}>{recentAudit.length}</span>
+            </div>
+          </div>
+        </>
+      }
+      stats={[
+        {
+          label: "Total queue",
+          value: stats.total,
+          hint: "All cards currently visible to the admin queue.",
+        },
+        {
+          label: "Pending",
+          value: stats.pending,
+          hint: "Cards awaiting manual activation.",
+          tone: "amber",
+        },
+        {
+          label: "Active",
+          value: stats.active,
+          hint: "Cards currently live in public view.",
+          tone: "emerald",
+        },
+        {
+          label: "Paused",
+          value: stats.paused,
+          hint: "Cards blocked until manual reactivation.",
+          tone: "rose",
+        },
+      ]}
+    >
+      {clientBillingMode !== "manual" ? (
+        <section className={`${shellStyles.surfaceCard} glass-panel`}>
+          <div className={shellStyles.emptyState}>
+            <div className={shellStyles.emptyIconWrap}>
+              <ShieldCheck className={shellStyles.emptyIcon} />
+            </div>
+            <h2 className={shellStyles.emptyTitle}>Admin activation is disabled</h2>
+            <p className={shellStyles.emptyText}>
+              This page only works while billing mode is set to manual.
+            </p>
+            <div className={`${shellStyles.buttonRow} mt-6 justify-center`}>
+              <Link href="/dashboard" className={shellStyles.actionButton}>
+                <CreditCard className={shellStyles.buttonIcon} />
+                Back to dashboard
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <>
+          <section className={`${shellStyles.surfaceCard} glass-panel`}>
+            <div className={shellStyles.surfaceHeader}>
+              <div>
+                <p className={`mono ${shellStyles.spotlightLabel}`}>FILTER + SEARCH</p>
+                <h2 className={shellStyles.surfaceTitle}>Find cards or owners fast</h2>
+                <p className={shellStyles.surfaceDescription}>
+                  Search by owner, card slug, company, or note, then slice the queue by access state.
+                </p>
+              </div>
+
+              <div className={shellStyles.pillRow}>
+                <span className={shellStyles.pill}>
+                  <Sparkles className={shellStyles.pillIcon} />
+                  {filteredCards.length} visible records
+                </span>
+                <span className={shellStyles.pill}>
+                  <Users className={shellStyles.pillIcon} />
+                  {ownerGroups.length} owners
+                </span>
+              </div>
+            </div>
+
+            <div className={shellStyles.toolbar}>
+              <label className={shellStyles.toolbarField}>
+                <Search className={shellStyles.toolbarFieldIcon} />
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search by card, owner, slug, company, or note"
+                  className={shellStyles.toolbarInput}
+                />
+              </label>
+
+              <label className="relative min-w-[220px]">
+                <Filter className={shellStyles.toolbarFieldIcon} />
+                <select
+                  value={statusFilter}
+                  onChange={(event) =>
+                    setStatusFilter(event.target.value as "all" | ManualCardStatus)
+                  }
+                  className={`${shellStyles.toolbarSelect} pl-11`}
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-lg font-semibold">
-                          {group.userName || group.userEmail || "Unknown owner"}
-                        </h3>
-                        <Link
-                          href={`/dashboard/admin/owners/${group.userId}`}
-                          className="inline-flex items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-base)] px-3 py-1 text-xs font-[family-name:var(--font-geist-mono)] text-[var(--color-text-muted)] hover:border-[var(--color-neon)] hover:text-[var(--color-neon)] transition-colors"
-                        >
-                          Open owner detail
-                        </Link>
-                      </div>
-                      <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                        {group.userEmail}
-                      </p>
-                      <div className="mt-4 flex flex-wrap gap-2 text-xs font-[family-name:var(--font-geist-mono)]">
-                        <span className="rounded-full border border-[var(--color-border)] px-3 py-1">
-                          {group.total} cards
-                        </span>
-                        <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-amber-200">
-                          {group.pending} pending
-                        </span>
-                        <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-emerald-200">
-                          {group.active} active
-                        </span>
-                        <span className="rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-rose-200">
-                          {group.paused} paused
-                        </span>
-                      </div>
-                    </div>
+                  {FILTER_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-                    <div className="lg:w-[320px]">
-                      <label className="block text-xs uppercase tracking-[0.22em] text-[var(--color-text-muted)] mb-2">
-                        Optional bulk note
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={ownerNoteDrafts[group.userId] ?? ""}
-                        onChange={(event) =>
-                          setOwnerNoteDrafts((previous) => ({
-                            ...previous,
-                            [group.userId]: event.target.value,
-                          }))
-                        }
-                        placeholder="Apply the same note to all this owner's cards"
-                        className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] px-3 py-2 text-sm outline-none resize-y focus:border-[var(--color-neon)]"
-                      />
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
-                        {STATUS_OPTIONS.map((option) => {
-                          const optionMeta = STATUS_META[option];
-                          const OptionIcon = optionMeta.icon;
-                          const isBusy = bulkUpdatingUserId === group.userId;
+              {(searchQuery || statusFilter !== "all") && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                  }}
+                  className={shellStyles.actionButtonGhost}
+                >
+                  Reset filters
+                </button>
+              )}
+            </div>
 
-                          return (
-                            <button
-                              key={`${group.userId}-${option}`}
-                              onClick={() =>
-                                void updateOwnerStatus(group.userId, option)
-                              }
-                              disabled={isBusy}
-                              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] px-3 py-3 text-left hover:border-[var(--color-neon)] transition-colors disabled:opacity-70"
-                            >
-                              <div className="flex items-center gap-2 text-sm font-medium">
+            <p className={`${shellStyles.toolbarHint} mt-4`}>
+              Showing {filteredCards.length} of {cards.length} cards across {ownerGroups.length} owners.
+            </p>
+          </section>
+
+          {ownerGroups.length > 0 && (
+            <section className={`${shellStyles.surfaceCard} glass-panel`}>
+              <div className={shellStyles.surfaceHeader}>
+                <div>
+                  <p className={`mono ${shellStyles.spotlightLabel}`}>OWNER CONTROLS</p>
+                  <h2 className={shellStyles.surfaceTitle}>Bulk activation by owner</h2>
+                  <p className={shellStyles.surfaceDescription}>
+                    Push one decision across all cards for a single owner, with an optional shared internal note.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+                {ownerGroups.map((group) => (
+                  <article
+                    key={group.userId}
+                    className={`${shellStyles.surfaceCard} glass-panel`}
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="text-xl font-semibold">
+                            {group.userName || group.userEmail || "Unknown owner"}
+                          </h3>
+                          <Link
+                            href={`/dashboard/admin/owners/${group.userId}`}
+                            className={shellStyles.actionButtonGhost}
+                          >
+                            Open owner detail
+                          </Link>
+                        </div>
+                        <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+                          {group.userEmail}
+                        </p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <span className={shellStyles.badge}>{group.total} cards</span>
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-[family-name:var(--font-mono)] ${STATUS_META.pending.className}`}>
+                            {group.pending} pending
+                          </span>
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-[family-name:var(--font-mono)] ${STATUS_META.active.className}`}>
+                            {group.active} active
+                          </span>
+                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-[family-name:var(--font-mono)] ${STATUS_META.paused.className}`}>
+                            {group.paused} paused
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="w-full lg:max-w-[360px]">
+                        <label className={`mono ${shellStyles.spotlightLabel}`}>
+                          OPTIONAL BULK NOTE
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={ownerNoteDrafts[group.userId] ?? ""}
+                          onChange={(event) =>
+                            setOwnerNoteDrafts((previous) => ({
+                              ...previous,
+                              [group.userId]: event.target.value,
+                            }))
+                          }
+                          placeholder="Apply the same note to all this owner's cards"
+                          className={shellStyles.textarea}
+                        />
+                        <div className={`${shellStyles.buttonRow} mt-3`}>
+                          {STATUS_OPTIONS.map((option) => {
+                            const optionMeta = STATUS_META[option];
+                            const OptionIcon = optionMeta.icon;
+                            const isBusy = bulkUpdatingUserId === group.userId;
+
+                            return (
+                              <button
+                                key={`${group.userId}-${option}`}
+                                onClick={() =>
+                                  void updateOwnerStatus(group.userId, option)
+                                }
+                                disabled={isBusy}
+                                className={shellStyles.actionButtonGhost}
+                              >
                                 {isBusy ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  <Loader2 className={shellStyles.buttonIcon} />
                                 ) : (
-                                  <OptionIcon className="w-4 h-4" />
+                                  <OptionIcon className={shellStyles.buttonIcon} />
                                 )}
                                 {optionMeta.label}
-                              </div>
-                            </button>
-                          );
-                        })}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </section>
-              ))}
-            </div>
-          </div>
-        )}
+                  </article>
+                ))}
+              </div>
+            </section>
+          )}
 
-        <div className="mb-8">
           <AdminAuditFeed
             entries={recentAudit}
             emptyText="Admin actions will appear here once you start approving, pausing, or annotating cards."
           />
-        </div>
 
-        <div className="space-y-4">
-          {filteredCards.map((card) => {
-            const meta = STATUS_META[card.manualStatus];
-            const StatusIcon = meta.icon;
-
-            return (
-              <section
-                key={card.id}
-                className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[0_18px_45px_rgba(5,10,28,0.18)]"
-              >
-                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-3 mb-3">
-                      <h2 className="text-xl font-semibold">{card.fullName}</h2>
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-[family-name:var(--font-geist-mono)] ${meta.className}`}>
-                        <StatusIcon className="w-3.5 h-3.5" />
-                        {meta.label}
-                      </span>
-                      {card.adminNote && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-neon)]/20 bg-[var(--color-neon)]/10 px-3 py-1 text-xs text-[var(--color-neon)] font-[family-name:var(--font-geist-mono)]">
-                          Note attached
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--color-text-muted)]">
-                      <span>{card.jobTitle || "No job title"}</span>
-                      <span>{card.company || "No company"}</span>
-                      <span className="font-[family-name:var(--font-geist-mono)]">/{card.slug}</span>
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--color-text-muted)]">
-                      <span className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        {card._count.leads} leads
-                      </span>
-                      <span>{card._count.views} views</span>
-                      <Link
-                        href={`/dashboard/admin/owners/${card.user.id}`}
-                        className="hover:text-[var(--color-neon)] transition-colors"
-                      >
-                        Owner: {card.user.name || card.user.email || "Unknown user"}
-                      </Link>
-                      <span>{card.user.email}</span>
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-3">
-                      <Link
-                        href={`/card/${card.slug}`}
-                        target="_blank"
-                        className="inline-flex items-center gap-2 text-xs border border-[var(--color-border)] bg-[var(--color-bg-base)] px-3 py-2 rounded-lg hover:border-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                        Open public card
-                      </Link>
-                      <Link
-                        href={`/dashboard/cards/${card.id}/edit`}
-                        className="inline-flex items-center gap-2 text-xs border border-[var(--color-border)] bg-[var(--color-bg-base)] px-3 py-2 rounded-lg hover:border-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-                      >
-                        Edit card
-                      </Link>
-                      <Link
-                        href={`/dashboard/admin/owners/${card.user.id}`}
-                        className="inline-flex items-center gap-2 text-xs border border-[var(--color-border)] bg-[var(--color-bg-base)] px-3 py-2 rounded-lg hover:border-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-                      >
-                        Owner detail
-                      </Link>
-                    </div>
-
-                    <div className="mt-5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] p-4">
-                      <div className="flex items-center justify-between gap-3 mb-2">
-                        <p className="text-xs uppercase tracking-[0.22em] text-[var(--color-text-muted)]">
-                          Activation note
-                        </p>
-                        {card.adminNoteUpdatedAt && (
-                          <span className="text-xs text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                            Updated {formatTimestamp(card.adminNoteUpdatedAt)}
-                          </span>
-                        )}
-                      </div>
-                      <textarea
-                        rows={3}
-                        value={noteDrafts[card.id] ?? ""}
-                        onChange={(event) =>
-                          setNoteDrafts((previous) => ({
-                            ...previous,
-                            [card.id]: event.target.value,
-                          }))
-                        }
-                        placeholder="Internal note for activation, pause reason, or owner context"
-                        className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm outline-none resize-y focus:border-[var(--color-neon)]"
-                      />
-                      <div className="mt-3 flex justify-end">
-                        <button
-                          onClick={() => void saveNote(card.id)}
-                          disabled={
-                            savingNote === card.id ||
-                            (noteDrafts[card.id] ?? "") === (card.adminNote ?? "")
-                          }
-                          className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm font-[family-name:var(--font-geist-mono)] hover:border-[var(--color-neon)] transition-colors disabled:opacity-60"
-                        >
-                          {savingNote === card.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Save className="w-4 h-4" />
-                          )}
-                          Save note
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="xl:w-[360px]">
-                    <p className="text-xs uppercase tracking-[0.22em] text-[var(--color-text-muted)] mb-3">
-                      Change access state
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      {STATUS_OPTIONS.map((option) => {
-                        const optionMeta = STATUS_META[option];
-                        const OptionIcon = optionMeta.icon;
-                        const isCurrent = option === card.manualStatus;
-                        const isBusy = updating === card.id;
-
-                        return (
-                          <button
-                            key={option}
-                            onClick={() => void updateStatus(card.id, option)}
-                            disabled={isBusy || isCurrent}
-                            className={`rounded-xl border px-3 py-3 text-left transition-all ${
-                              isCurrent
-                                ? `${optionMeta.className} cursor-default`
-                                : "border-[var(--color-border)] bg-[var(--color-bg-base)] hover:border-[var(--color-neon)]"
-                            } ${isBusy ? "opacity-70" : ""}`}
-                          >
-                            <div className="flex items-center gap-2 text-sm font-medium">
-                              {isBusy ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <OptionIcon className="w-4 h-4" />
-                              )}
-                              {optionMeta.label}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+          {cards.length === 0 ? (
+            <section className={`${shellStyles.surfaceCard} glass-panel`}>
+              <div className={shellStyles.emptyState}>
+                <div className={shellStyles.emptyIconWrap}>
+                  <ShieldCheck className={shellStyles.emptyIcon} />
                 </div>
-              </section>
-            );
-          })}
-        </div>
+                <h2 className={shellStyles.emptyTitle}>No cards to review</h2>
+                <p className={shellStyles.emptyText}>
+                  As new cards are created in manual billing mode, they will appear here automatically.
+                </p>
+              </div>
+            </section>
+          ) : filteredCards.length === 0 ? (
+            <section className={`${shellStyles.surfaceCard} glass-panel`}>
+              <div className={shellStyles.emptyState}>
+                <div className={shellStyles.emptyIconWrap}>
+                  <Search className={shellStyles.emptyIcon} />
+                </div>
+                <h2 className={shellStyles.emptyTitle}>No cards match these filters</h2>
+                <p className={shellStyles.emptyText}>
+                  Change the search query or reset the status filter to see more records.
+                </p>
+              </div>
+            </section>
+          ) : (
+            <section className={`${shellStyles.surfaceCard} glass-panel`}>
+              <div className={shellStyles.surfaceHeader}>
+                <div>
+                  <p className={`mono ${shellStyles.spotlightLabel}`}>CARD QUEUE</p>
+                  <h2 className={shellStyles.surfaceTitle}>Per-card decisions and notes</h2>
+                  <p className={shellStyles.surfaceDescription}>
+                    Refine status one card at a time, attach internal context, and jump straight to the public card or edit view.
+                  </p>
+                </div>
+              </div>
 
-        {cards.length === 0 && (
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center">
-            <ShieldCheck className="w-12 h-12 text-[var(--color-neon)] mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No cards to review</h2>
-            <p className="text-[var(--color-text-muted)]">
-              As new cards are created in manual billing mode, they will appear here automatically.
-            </p>
-          </div>
-        )}
+              <div className="space-y-5">
+                {filteredCards.map((card) => {
+                  const meta = STATUS_META[card.manualStatus];
+                  const StatusIcon = meta.icon;
 
-        {cards.length > 0 && filteredCards.length === 0 && (
-          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center mt-6">
-            <Search className="w-12 h-12 text-[var(--color-neon)] mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">No cards match these filters</h2>
-            <p className="text-[var(--color-text-muted)]">
-              Change the search query or reset the status filter to see more records.
-            </p>
-          </div>
-        )}
-      </main>
-    </div>
+                  return (
+                    <article
+                      key={card.id}
+                      className={`${shellStyles.surfaceCard} glass-panel`}
+                    >
+                      <div className="flex flex-col xl:flex-row xl:items-start justify-between gap-6">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-3 mb-3">
+                            <h3 className="text-2xl font-semibold tracking-tight">
+                              {card.fullName}
+                            </h3>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-[family-name:var(--font-mono)] ${meta.className}`}>
+                              <StatusIcon className="w-3.5 h-3.5" />
+                              {meta.label}
+                            </span>
+                            {card.adminNote && (
+                              <span className={shellStyles.badge}>Note attached</span>
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--color-text-muted)]">
+                            <span>{card.jobTitle || "No job title"}</span>
+                            <span>{card.company || "No company"}</span>
+                            <span className="font-[family-name:var(--font-mono)]">
+                              /{card.slug}
+                            </span>
+                          </div>
+
+                          <div className="mt-4 flex flex-wrap items-center gap-2">
+                            <span className={shellStyles.badge}>
+                              <Users className={shellStyles.badgeIcon} />
+                              {card._count.leads} leads
+                            </span>
+                            <span className={shellStyles.badge}>
+                              <Sparkles className={shellStyles.badgeIcon} />
+                              {card._count.views} views
+                            </span>
+                            <Link
+                              href={`/dashboard/admin/owners/${card.user.id}`}
+                              className={shellStyles.actionButtonGhost}
+                            >
+                              Owner: {card.user.name || card.user.email || "Unknown user"}
+                            </Link>
+                          </div>
+
+                          <div className={`${shellStyles.buttonRow} mt-4`}>
+                            <Link
+                              href={`/card/${card.slug}`}
+                              target="_blank"
+                              className={shellStyles.actionButtonGhost}
+                            >
+                              <ExternalLink className={shellStyles.buttonIcon} />
+                              Open public card
+                            </Link>
+                            <Link
+                              href={`/dashboard/cards/${card.id}/edit`}
+                              className={shellStyles.actionButtonGhost}
+                            >
+                              <Pencil className={shellStyles.buttonIcon} />
+                              Edit card
+                            </Link>
+                            <Link
+                              href={`/dashboard/admin/owners/${card.user.id}`}
+                              className={shellStyles.actionButtonGhost}
+                            >
+                              <Users className={shellStyles.buttonIcon} />
+                              Owner detail
+                            </Link>
+                          </div>
+
+                          <div className="mt-5 rounded-[22px] border border-white/8 bg-[rgba(2,6,23,0.64)] p-4">
+                            <div className="flex items-center justify-between gap-3 mb-2">
+                              <p className={`mono ${shellStyles.spotlightLabel}`}>
+                                ACTIVATION NOTE
+                              </p>
+                              {card.adminNoteUpdatedAt && (
+                                <span className={shellStyles.toolbarHint}>
+                                  Updated {formatTimestamp(card.adminNoteUpdatedAt)}
+                                </span>
+                              )}
+                            </div>
+                            <textarea
+                              rows={3}
+                              value={noteDrafts[card.id] ?? ""}
+                              onChange={(event) =>
+                                setNoteDrafts((previous) => ({
+                                  ...previous,
+                                  [card.id]: event.target.value,
+                                }))
+                              }
+                              placeholder="Internal note for activation, pause reason, or owner context"
+                              className={shellStyles.textarea}
+                            />
+                            <div className="mt-3 flex justify-end">
+                              <button
+                                onClick={() => void saveNote(card.id)}
+                                disabled={
+                                  savingNote === card.id ||
+                                  (noteDrafts[card.id] ?? "") === (card.adminNote ?? "")
+                                }
+                                className={shellStyles.actionButtonGhost}
+                              >
+                                {savingNote === card.id ? (
+                                  <Loader2 className={shellStyles.buttonIcon} />
+                                ) : (
+                                  <Save className={shellStyles.buttonIcon} />
+                                )}
+                                Save note
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="xl:w-[360px]">
+                          <p className={`mono ${shellStyles.spotlightLabel}`}>
+                            CHANGE ACCESS STATE
+                          </p>
+                          <div className={`${shellStyles.buttonRow} xl:flex-col`}>
+                            {STATUS_OPTIONS.map((option) => {
+                              const optionMeta = STATUS_META[option];
+                              const OptionIcon = optionMeta.icon;
+                              const isCurrent = option === card.manualStatus;
+                              const isBusy = updating === card.id;
+
+                              return (
+                                <button
+                                  key={option}
+                                  onClick={() => void updateStatus(card.id, option)}
+                                  disabled={isBusy || isCurrent}
+                                  className={
+                                    isCurrent
+                                      ? `inline-flex items-center justify-center gap-2 min-h-12 px-4 rounded-2xl border text-sm font-medium ${optionMeta.className}`
+                                      : shellStyles.actionButtonGhost
+                                  }
+                                >
+                                  {isBusy ? (
+                                    <Loader2 className={shellStyles.buttonIcon} />
+                                  ) : (
+                                    <OptionIcon className={shellStyles.buttonIcon} />
+                                  )}
+                                  {optionMeta.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </>
+      )}
+    </DashboardShell>
   );
 }

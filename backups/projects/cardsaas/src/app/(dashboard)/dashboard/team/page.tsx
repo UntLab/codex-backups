@@ -1,22 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  CreditCard,
-  LogOut,
-  Users,
-  UserPlus,
-  Mail,
-  Shield,
-  Crown,
-  Loader2,
-  Pencil,
   Check,
+  Crown,
+  CreditCard,
+  Loader2,
+  Mail,
+  Pencil,
+  Shield,
+  ShieldCheck,
+  Sparkles,
+  UserPlus,
+  Users,
   X,
 } from "lucide-react";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import shellStyles from "@/components/dashboard/dashboard-shell.module.css";
 
 interface TeamMember {
   id: string;
@@ -37,6 +39,22 @@ interface Team {
 interface TeamsResponse {
   ownedTeams: Team[];
   memberOf: Team | null;
+}
+
+function MemberAvatar({ member }: { member: TeamMember }) {
+  return (
+    <div className="w-11 h-11 rounded-full bg-[var(--color-cyan)]/12 border border-white/10 flex items-center justify-center overflow-hidden">
+      {member.image ? (
+        // Remote provider avatars can come from arbitrary hosts, so keep a plain img here.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={member.image} alt="" className="w-full h-full object-cover" />
+      ) : (
+        <span className="text-sm font-bold text-[var(--color-cyan)]">
+          {(member.name || member.email)[0].toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export default function TeamPage() {
@@ -60,7 +78,7 @@ export default function TeamPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchTeams();
+      void fetchTeams();
     }
   }, [status]);
 
@@ -79,8 +97,8 @@ export default function TeamPage() {
     }
   };
 
-  const handleCreateTeam = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateTeam = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!createName.trim()) return;
     setCreating(true);
     try {
@@ -103,8 +121,8 @@ export default function TeamPage() {
     }
   };
 
-  const handleInvite = async (e: React.FormEvent, teamId: string) => {
-    e.preventDefault();
+  const handleInvite = async (event: React.FormEvent, teamId: string) => {
+    event.preventDefault();
     if (!inviteEmail.trim()) return;
     setInviting(true);
     try {
@@ -160,306 +178,373 @@ export default function TeamPage() {
     }
   };
 
+  const ownedTeam = teamsData?.ownedTeams?.[0] ?? null;
+  const memberTeam = teamsData?.memberOf ?? null;
+  const hasAnyTeam = Boolean(ownedTeam || memberTeam);
+  const totalMembers = useMemo(
+    () => ownedTeam?.members.length ?? memberTeam?.members.length ?? 0,
+    [ownedTeam, memberTeam]
+  );
+
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center cyber-grid">
-        <Loader2 className="w-8 h-8 text-[var(--color-neon)] animate-spin" />
+      <div className={shellStyles.loadingPage}>
+        <Loader2 className={shellStyles.loadingSpinner} />
       </div>
     );
   }
 
-  const ownedTeam = teamsData?.ownedTeams?.[0] ?? null;
-  const memberTeam = teamsData?.memberOf ?? null;
-  const hasAnyTeam = ownedTeam || memberTeam;
-
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] cyber-grid">
-      <nav className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[var(--color-neon)] rounded-md flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-black" />
+    <DashboardShell
+      eyebrow="TEAM WORKSPACE"
+      title={
+        <>
+          Team structure, <span className="gradient-text">without clutter</span>.
+        </>
+      }
+      description="Create the workspace team, invite members, assign ownership, and keep multi-user card management organized inside the same premium operating layer."
+      navItems={[
+        { href: "/dashboard", label: "Cards", icon: CreditCard },
+        {
+          href: "/dashboard/leads",
+          label: "Leads",
+          icon: Users,
+          hiddenUntil: "md",
+        },
+        {
+          href: "/dashboard/templates",
+          label: "Templates",
+          icon: Sparkles,
+          hiddenUntil: "md",
+        },
+        { href: "/dashboard/team", label: "Team", icon: UserPlus, active: true },
+        ...(session?.user?.isAdmin
+          ? [
+              {
+                href: "/dashboard/admin",
+                label: "Admin",
+                icon: ShieldCheck,
+                hiddenUntil: "lg" as const,
+              },
+            ]
+          : []),
+      ]}
+      sessionLabel={session?.user?.name || session?.user?.email}
+      onSignOut={() => signOut({ callbackUrl: "/" })}
+      heroActions={
+        !hasAnyTeam ? (
+          <button
+            onClick={() =>
+              document.getElementById("team-create-form")?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              })
+            }
+            className={shellStyles.actionButton}
+          >
+            <Shield className={shellStyles.buttonIcon} />
+            Create team
+          </button>
+        ) : undefined
+      }
+      heroAside={
+        <>
+          <div className={`${shellStyles.spotlight} glass-panel`}>
+            <p className={`mono ${shellStyles.spotlightLabel}`}>COLLABORATION SIGNAL</p>
+            <h2 className={shellStyles.spotlightTitle}>
+              {hasAnyTeam
+                ? `${totalMembers} member${totalMembers === 1 ? "" : "s"} connected to the current workspace.`
+                : "No team yet. Create one when you are ready to collaborate."}
+            </h2>
+            <p className={shellStyles.spotlightText}>
+              Team mode is where card operations move from solo management to shared control. Owners can rename teams and send invites directly from this surface.
+            </p>
+            <div className={shellStyles.spotlightBadges}>
+              <span className={shellStyles.spotlightBadge}>
+                <Users className={shellStyles.spotlightBadgeIcon} />
+                Shared card ops
+              </span>
+              <span className={shellStyles.spotlightBadge}>
+                <Mail className={shellStyles.spotlightBadgeIcon} />
+                Invite flow
+              </span>
             </div>
-            <span className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-              Card<span className="text-[var(--color-neon)]">SaaS</span>
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-            >
-              Cards
-            </Link>
-            <span className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] hidden sm:block">
-              {session?.user?.name || session?.user?.email}
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors font-[family-name:var(--font-geist-mono)]"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign out</span>
-            </button>
           </div>
-        </div>
-      </nav>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold mb-1 font-[family-name:var(--font-geist-mono)]">
-            Team
-          </h1>
-          <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-            Manage team members and their digital cards
-          </p>
-        </div>
-
-        {!hasAnyTeam && (
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 max-w-xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-lg bg-[var(--color-neon)]/10 border border-[var(--color-neon)]/30 flex items-center justify-center">
-                <Users className="w-6 h-6 text-[var(--color-neon)]" />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold font-[family-name:var(--font-geist-mono)]">
-                  Create Team
-                </h2>
-                <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                  A team lets you manage employee cards from one account
-                </p>
-              </div>
+          <div className={shellStyles.metricGrid}>
+            <div className={shellStyles.metricTile}>
+              <span className={shellStyles.metricTileLabel}>Owned teams</span>
+              <span className={shellStyles.metricTileValue}>
+                {teamsData?.ownedTeams.length ?? 0}
+              </span>
             </div>
-            <form onSubmit={handleCreateTeam} className="flex gap-3">
+            <div className={shellStyles.metricTile}>
+              <span className={shellStyles.metricTileLabel}>Members</span>
+              <span className={shellStyles.metricTileValue}>{totalMembers}</span>
+            </div>
+          </div>
+        </>
+      }
+      stats={[
+        {
+          label: "Owned teams",
+          value: teamsData?.ownedTeams.length ?? 0,
+          hint: "Teams where this account controls ownership.",
+        },
+        {
+          label: "Membership",
+          value: memberTeam ? 1 : 0,
+          hint: "Whether this account is also part of another team.",
+          tone: "violet",
+        },
+        {
+          label: "Members",
+          value: totalMembers,
+          hint: "Visible members in the active team context.",
+          tone: "emerald",
+        },
+        {
+          label: "Invites ready",
+          value: hasAnyTeam ? "ON" : "WAIT",
+          hint: "Invite flow becomes available after team creation.",
+          tone: "amber",
+        },
+      ]}
+    >
+      {!hasAnyTeam && (
+        <section id="team-create-form" className={`${shellStyles.surfaceCard} glass-panel`}>
+          <div className={shellStyles.surfaceHeader}>
+            <div>
+              <p className={`mono ${shellStyles.spotlightLabel}`}>CREATE TEAM</p>
+              <h2 className={shellStyles.surfaceTitle}>Start your shared workspace</h2>
+              <p className={shellStyles.surfaceDescription}>
+                A team lets you organize employee cards from one central account and prepare multi-user operations.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleCreateTeam} className={shellStyles.toolbar}>
+            <label className={shellStyles.toolbarField}>
+              <Users className={shellStyles.toolbarFieldIcon} />
               <input
                 type="text"
                 value={createName}
-                onChange={(e) => setCreateName(e.target.value)}
+                onChange={(event) => setCreateName(event.target.value)}
                 placeholder="Team name"
-                className="v2-input-compact flex-1 font-[family-name:var(--font-geist-mono)]"
+                className={shellStyles.toolbarInput}
               />
-              <button
-                type="submit"
-                disabled={creating || !createName.trim()}
-                className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)] disabled:cursor-not-allowed"
-              >
-                {creating ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Shield className="w-4 h-4" />
-                )}
-                Create Team
-              </button>
-            </form>
-          </div>
-        )}
+            </label>
+            <button
+              type="submit"
+              disabled={creating || !createName.trim()}
+              className={shellStyles.actionButton}
+            >
+              {creating ? (
+                <Loader2 className={shellStyles.buttonIcon} />
+              ) : (
+                <Shield className={shellStyles.buttonIcon} />
+              )}
+              Create team
+            </button>
+          </form>
+        </section>
+      )}
 
-        {ownedTeam && (
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden mb-6">
-            <div className="p-6 border-b border-[var(--color-border)]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[var(--color-neon)]/10 border border-[var(--color-neon)]/30 flex items-center justify-center">
-                  <Crown className="w-5 h-5 text-[var(--color-neon)]" />
-                </div>
-                {editingTeamId === ownedTeam.id ? (
-                  <div className="flex items-center gap-2 flex-1">
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="v2-input-compact flex-1 font-[family-name:var(--font-geist-mono)]"
-                    />
-                    <button
-                      onClick={saveTeamName}
-                      disabled={saving}
-                      className="p-2 rounded-lg bg-[var(--color-neon)] text-black hover:opacity-90"
-                    >
-                      {saving ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Check className="w-4 h-4" />
-                      )}
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      className="p-2 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-neon-danger)] text-[var(--color-neon-danger)]"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <h2 className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-                      {ownedTeam.name}
-                    </h2>
-                    <span className="text-xs text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                      You are the owner
-                    </span>
-                    <button
-                      onClick={() => startEditTeam(ownedTeam)}
-                      className="p-2 rounded-lg border border-[var(--color-border)] hover:border-[var(--color-neon)] text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                  </>
-                )}
-              </div>
+      {ownedTeam && (
+        <section className={`${shellStyles.surfaceCard} glass-panel`}>
+          <div className={shellStyles.surfaceHeader}>
+            <div>
+              <p className={`mono ${shellStyles.spotlightLabel}`}>OWNER TEAM</p>
+              <h2 className={shellStyles.surfaceTitle}>
+                {editingTeamId === ownedTeam.id ? "Edit team name" : ownedTeam.name}
+              </h2>
+              <p className={shellStyles.surfaceDescription}>
+                You own this team. Manage members, rename the team, and invite new people into the workspace.
+              </p>
             </div>
 
-            <div className="p-6">
-              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-4 font-[family-name:var(--font-geist-mono)]">
-                Members
-              </h3>
-              <div className="space-y-3 mb-6">
-                {ownedTeam.members.map((m) => (
+            <div className={shellStyles.pillRow}>
+              <span className={shellStyles.pill}>
+                <Crown className={shellStyles.pillIcon} />
+                You are the owner
+              </span>
+            </div>
+          </div>
+
+          {editingTeamId === ownedTeam.id ? (
+            <div className={shellStyles.toolbar}>
+              <label className={shellStyles.toolbarField}>
+                <Pencil className={shellStyles.toolbarFieldIcon} />
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(event) => setEditName(event.target.value)}
+                  className={shellStyles.toolbarInput}
+                />
+              </label>
+              <button
+                onClick={() => void saveTeamName()}
+                disabled={saving}
+                className={shellStyles.actionButton}
+              >
+                {saving ? (
+                  <Loader2 className={shellStyles.buttonIcon} />
+                ) : (
+                  <Check className={shellStyles.buttonIcon} />
+                )}
+                Save
+              </button>
+              <button onClick={cancelEdit} className={shellStyles.actionButtonGhost}>
+                <X className={shellStyles.buttonIcon} />
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <div className={shellStyles.buttonRow}>
+              <button
+                onClick={() => startEditTeam(ownedTeam)}
+                className={shellStyles.actionButtonGhost}
+              >
+                <Pencil className={shellStyles.buttonIcon} />
+                Rename team
+              </button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6 mt-6">
+            <div className={`${shellStyles.surfaceCard} glass-panel`}>
+              <div className={shellStyles.surfaceHeader}>
+                <div>
+                  <p className={`mono ${shellStyles.spotlightLabel}`}>MEMBERS</p>
+                  <h3 className={shellStyles.surfaceTitle}>Current team roster</h3>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {ownedTeam.members.map((member) => (
                   <div
-                    key={m.id}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)]"
+                    key={member.id}
+                    className="flex items-center gap-4 rounded-[22px] border border-white/8 bg-white/4 px-4 py-3"
                   >
-                    <div className="w-8 h-8 rounded-full bg-[var(--color-neon)]/20 flex items-center justify-center overflow-hidden">
-                      {m.image ? (
-                        <img
-                          src={m.image}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xs font-bold text-[var(--color-neon)]">
-                          {(m.name || m.email)[0].toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate font-[family-name:var(--font-geist-mono)]">
-                        {m.name || m.email}
+                    <MemberAvatar member={member} />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium truncate">
+                        {member.name || member.email}
                       </p>
-                      <p className="text-xs text-[var(--color-text-muted)] truncate font-[family-name:var(--font-geist-mono)]">
-                        {m.email}
+                      <p className="text-sm text-[var(--color-text-muted)] truncate">
+                        {member.email}
                       </p>
                     </div>
-                    {m.id === ownedTeam.ownerId && (
-                      <span className="flex items-center gap-1 text-xs text-[var(--color-neon)] font-[family-name:var(--font-geist-mono)]">
-                        <Crown className="w-3.5 h-3.5" />
+                    {member.id === ownedTeam.ownerId && (
+                      <span className={shellStyles.badge}>
+                        <Crown className={shellStyles.badgeIcon} />
                         Owner
                       </span>
                     )}
                   </div>
                 ))}
               </div>
+            </div>
 
-              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-3 font-[family-name:var(--font-geist-mono)]">
-                Invite Member
-              </h3>
+            <div className={`${shellStyles.surfaceCard} glass-panel`}>
+              <div className={shellStyles.surfaceHeader}>
+                <div>
+                  <p className={`mono ${shellStyles.spotlightLabel}`}>INVITE FLOW</p>
+                  <h3 className={shellStyles.surfaceTitle}>Invite a new member</h3>
+                  <p className={shellStyles.surfaceDescription}>
+                    Send an invite by email to expand the workspace.
+                  </p>
+                </div>
+              </div>
+
               <form
-                onSubmit={(e) => handleInvite(e, ownedTeam.id)}
-                className="flex gap-3"
+                onSubmit={(event) => void handleInvite(event, ownedTeam.id)}
+                className="space-y-4"
               >
-                <div className="flex-1 relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
+                <label className={shellStyles.toolbarField}>
+                  <Mail className={shellStyles.toolbarFieldIcon} />
                   <input
                     type="email"
                     value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
+                    onChange={(event) => setInviteEmail(event.target.value)}
                     placeholder="email@example.com"
-                    className="v2-input-compact w-full pl-10 pr-4 font-[family-name:var(--font-geist-mono)]"
+                    className={shellStyles.toolbarInput}
                   />
-                </div>
+                </label>
+
                 <button
                   type="submit"
                   disabled={inviting || !inviteEmail.trim()}
-                  className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)] disabled:cursor-not-allowed"
+                  className={shellStyles.actionButton}
                 >
                   {inviting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className={shellStyles.buttonIcon} />
                   ) : (
-                    <UserPlus className="w-4 h-4" />
+                    <UserPlus className={shellStyles.buttonIcon} />
                   )}
-                  Invite Member
+                  Invite member
                 </button>
               </form>
             </div>
           </div>
-        )}
+        </section>
+      )}
 
-        {memberTeam && memberTeam.id !== ownedTeam?.id && (
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-[var(--color-neon)]/10 border border-[var(--color-neon)]/30 flex items-center justify-center">
-                <Users className="w-5 h-5 text-[var(--color-neon)]" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-                  {memberTeam.name}
-                </h2>
-                <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                  You are a member of this team
-                </p>
-              </div>
-            </div>
-            {memberTeam.owner && (
-              <div className="p-4 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)]">
-                <p className="text-xs text-[var(--color-text-muted)] mb-2 font-[family-name:var(--font-geist-mono)]">
-                  Team Owner
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[var(--color-neon)]/20 flex items-center justify-center">
-                    <Crown className="w-4 h-4 text-[var(--color-neon)]" />
-                  </div>
-                  <div>
-                    <p className="font-medium font-[family-name:var(--font-geist-mono)]">
-                      {memberTeam.owner.name || memberTeam.owner.email}
-                    </p>
-                    <p className="text-xs text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                      {memberTeam.owner.email}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div className="mt-4">
-              <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-3 font-[family-name:var(--font-geist-mono)]">
-                Team Members
-              </h3>
-              <div className="space-y-2">
-                {memberTeam.members.map((m) => (
-                  <div
-                    key={m.id}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-bg-base)] border border-[var(--color-border)]"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-[var(--color-neon)]/20 flex items-center justify-center overflow-hidden">
-                      {m.image ? (
-                        <img
-                          src={m.image}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-xs font-bold text-[var(--color-neon)]">
-                          {(m.name || m.email)[0].toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium font-[family-name:var(--font-geist-mono)]">
-                        {m.name || m.email}
-                      </p>
-                      <p className="text-xs text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                        {m.email}
-                      </p>
-                    </div>
-                    {m.id === memberTeam.ownerId && (
-                      <span className="flex items-center gap-1 text-xs text-[var(--color-neon)] ml-auto font-[family-name:var(--font-geist-mono)]">
-                        <Crown className="w-3.5 h-3.5" />
-                        Owner
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
+      {memberTeam && memberTeam.id !== ownedTeam?.id && (
+        <section className={`${shellStyles.surfaceCard} glass-panel`}>
+          <div className={shellStyles.surfaceHeader}>
+            <div>
+              <p className={`mono ${shellStyles.spotlightLabel}`}>MEMBER TEAM</p>
+              <h2 className={shellStyles.surfaceTitle}>{memberTeam.name}</h2>
+              <p className={shellStyles.surfaceDescription}>
+                You are part of this team as a member. The team owner controls invitations and naming.
+              </p>
             </div>
           </div>
-        )}
-      </main>
-    </div>
+
+          {memberTeam.owner && (
+            <div className={`${shellStyles.surfaceCard} glass-panel mb-5`}>
+              <p className={`mono ${shellStyles.spotlightLabel}`}>TEAM OWNER</p>
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 rounded-full bg-[var(--color-cyan)]/12 border border-white/10 flex items-center justify-center">
+                  <Crown className="w-5 h-5 text-[var(--color-cyan)]" />
+                </div>
+                <div>
+                  <p className="font-medium">
+                    {memberTeam.owner.name || memberTeam.owner.email}
+                  </p>
+                  <p className="text-sm text-[var(--color-text-muted)]">
+                    {memberTeam.owner.email}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {memberTeam.members.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center gap-4 rounded-[22px] border border-white/8 bg-white/4 px-4 py-3"
+              >
+                <MemberAvatar member={member} />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{member.name || member.email}</p>
+                  <p className="text-sm text-[var(--color-text-muted)] truncate">
+                    {member.email}
+                  </p>
+                </div>
+                {member.id === memberTeam.ownerId && (
+                  <span className={shellStyles.badge}>
+                    <Crown className={shellStyles.badgeIcon} />
+                    Owner
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </DashboardShell>
   );
 }

@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import {
+  applyFormagThemeDefaults,
+  FORMAG_SYSTEM_TEMPLATE,
+  FORMAG_THEME,
+} from "@/lib/formag";
+import {
+  applyPrgThemeDefaults,
+  PRG_ORANGE_SYSTEM_TEMPLATE,
+  PRG_ORANGE_THEME,
+  PRG_SYSTEM_TEMPLATE,
+  PRG_THEME,
+} from "@/lib/prg";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -19,7 +31,21 @@ export async function GET() {
     orderBy: [{ isSystem: "desc" }, { createdAt: "desc" }],
   });
 
-  return NextResponse.json({ templates });
+  const withSystemTemplates = [...templates];
+
+  if (!templates.some((template) => template.isSystem && template.theme === PRG_THEME)) {
+    withSystemTemplates.unshift(PRG_SYSTEM_TEMPLATE);
+  }
+
+  if (!templates.some((template) => template.isSystem && template.theme === PRG_ORANGE_THEME)) {
+    withSystemTemplates.unshift(PRG_ORANGE_SYSTEM_TEMPLATE);
+  }
+
+  if (!templates.some((template) => template.isSystem && template.theme === FORMAG_THEME)) {
+    withSystemTemplates.unshift(FORMAG_SYSTEM_TEMPLATE);
+  }
+
+  return NextResponse.json({ templates: withSystemTemplates });
 }
 
 export async function POST(req: NextRequest) {
@@ -29,7 +55,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const data = await req.json();
+    const data = applyPrgThemeDefaults(
+      applyFormagThemeDefaults(await req.json())
+    );
 
     const template = await prisma.cardTemplate.create({
       data: {

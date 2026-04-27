@@ -1,0 +1,458 @@
+.formagScreen,
+.formagScreen * {
+  box-sizing: border-box;
+}
+
+.formagScreen {
+  --bg-color: #f6f5f3;
+  --card-bg: #ffffff;
+  --text-color-dark: #332d2c;
+  --text-color-light: #ffffff;
+  --accent-brown: #332d2c;
+  --accent-orange: #e56c22;
+  --accent-red: #8f2f2e;
+  --button-front-active: #332d2c;
+  --button-front-inactive: #f0eeeb;
+
+  margin: 0;
+  padding: 20px;
+  background-color: var(--bg-color);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.cardContainer {
+  width: 100%;
+  max-width: 400px;
+  background-color: var(--card-bg);
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+}
+
+.logo img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.toggleContainer {
+  display: flex;
+  background-color: #f0eeeb;
+  border-radius: 20px;
+  padding: 2px;
+}
+
+.toggleButton {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-brown);
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.activeToggleButton {
+  color: var(--text-color-light);
+  background-color: var(--button-front-active);
+}
+
+.hero {
+  padding: 10px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.heroPhotoContainer {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid var(--card-bg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: -10px;
+  position: relative;
+  z-index: 2;
+}
+
+.heroPhotoContainer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.heroInfo {
+  background-color: #f6f5f3;
+  border-radius: 20px;
+  width: 100%;
+  padding: 30px 20px 20px;
+  margin-top: -60px;
+  position: relative;
+  z-index: 1;
+}
+
+.name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-brown);
+  margin: 50px 0 2px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--accent-brown);
+  font-style: italic;
+  margin: 0 0 8px;
+}
+
+.actionsGrid {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--card-bg);
+  border: 1px solid #eae6e0;
+  border-radius: 12px;
+  padding: 15px 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.3s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.actionButton:active {
+  transform: scale(0.98);
+  background-color: #fafaf9;
+}
+
+.iconContainer {
+  width: 36px;
+  height: 36px;
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.actionButton svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--accent-brown);
+  stroke-width: 1.5;
+}
+
+.textContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.actionButtonTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-brown);
+  margin-bottom: 2px;
+}
+
+.actionButtonDetail {
+  font-size: 11px;
+  color: rgba(51, 45, 44, 0.7);
+}
+
+.callActionButton {
+  border: 1px solid var(--accent-orange);
+}
+
+.callActionButton svg {
+  stroke: var(--accent-orange);
+}
+
+.details {
+  padding: 0 20px 20px;
+}
+
+.detailsHeader {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(51, 45, 44, 0.6);
+  margin: 0 0 15px;
+  padding-left: 5px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  padding: 12px 10px;
+  margin-bottom: 10px;
+  transition: background-color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.detailItem:last-child {
+  margin-bottom: 0;
+}
+
+.iconCircle {
+  width: 32px;
+  height: 32px;
+  background-color: var(--accent-brown);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.detailItem svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--text-color-light);
+  stroke-width: 1.5;
+}
+
+.detailItemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detailItemValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-brown);
+  margin: 0;
+}
+
+.flagAz {
+  width: 14px;
+  height: 10px;
+  display: inline-block;
+  margin-left: 5px;
+  margin-bottom: -1px;
+}
+
+.footer {
+  padding: 20px;
+  text-align: center;
+}
+
+.saveReadyHeader {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(51, 45, 44, 0.6);
+  margin: 0 0 10px;
+}
+
+.instructionText {
+  font-size: 12px;
+  color: rgba(51, 45, 44, 0.7);
+  margin: 0 0 20px;
+  line-height: 1.4;
+  padding: 0 10px;
+}
+
+.actionButtonsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.finalActionButton {
+  border: none;
+  border-radius: 12px;
+  padding: 15px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.finalActionButton:active {
+  transform: scale(0.98);
+}
+
+.saveContactButton {
+  background-color: var(--accent-brown);
+  color: var(--text-color-light);
+}
+
+.saveContactButton svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--accent-orange);
+  stroke-width: 1.5;
+}
+
+.shareCardButton {
+  background-color: var(--card-bg);
+  color: var(--accent-brown);
+  border: 1px solid #eae6e0;
+}
+
+.shareCardButton svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--accent-brown);
+  stroke-width: 1.5;
+}
+
+.backSide {
+  display: flex;
+  min-height: 720px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 20px 24px;
+  text-align: center;
+}
+
+.backLogoWrap {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  padding-top: 12px;
+}
+
+.backLogo {
+  width: auto;
+  height: 44px;
+  object-fit: contain;
+}
+
+.backQrPanel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 252px);
+  aspect-ratio: 1;
+  padding: 14px;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+}
+
+.backQrImage {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  object-fit: contain;
+  display: block;
+}
+
+.backQrFallback {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: #f6f5f3;
+  color: rgba(51, 45, 44, 0.6);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.backTextBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.backEyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(51, 45, 44, 0.58);
+}
+
+.backName {
+  margin: 0;
+  color: var(--accent-brown);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.08;
+}
+
+.backRole {
+  margin: 0;
+  color: rgba(51, 45, 44, 0.82);
+  font-size: 16px;
+  font-style: italic;
+}
+
+.backHint {
+  max-width: 260px;
+  margin: 0;
+  color: rgba(51, 45, 44, 0.66);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 420px) {
+  .formagScreen {
+    padding: 12px;
+  }
+
+  .cardContainer {
+    max-width: 100%;
+  }
+
+  .backSide {
+    min-height: calc(100vh - 48px);
+  }
+}

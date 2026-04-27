@@ -1,19 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   CreditCard,
-  LogOut,
+  Eye,
+  Loader2,
   Palette,
   Plus,
+  ShieldCheck,
   Trash2,
-  Eye,
-  Copy,
-  Loader2,
+  UserPlus,
+  Users,
 } from "lucide-react";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import shellStyles from "@/components/dashboard/dashboard-shell.module.css";
+import {
+  FORMAG_ACCENT,
+  FORMAG_BG,
+  FORMAG_THEME,
+} from "@/lib/formag";
+import {
+  PRG_ACCENT,
+  PRG_BG,
+  PRG_ORANGE_ACCENT,
+  PRG_ORANGE_BG,
+  PRG_ORANGE_THEME,
+  PRG_THEME,
+} from "@/lib/prg";
 
 interface Template {
   id: string;
@@ -35,17 +51,17 @@ const THEME_OPTIONS = [
   { value: "cyberpunk", label: "Cyberpunk" },
   { value: "minimal", label: "Minimal" },
   { value: "gradient", label: "Gradient" },
+  { value: PRG_THEME, label: "PRG Tech" },
+  { value: PRG_ORANGE_THEME, label: "PRG Tech Orange" },
+  { value: FORMAG_THEME, label: "Formag Corporate" },
 ];
 
 const FONT_OPTIONS = [
   { value: "Inter", label: "Inter" },
+  { value: "Space Grotesk", label: "Space Grotesk" },
   { value: "JetBrains Mono", label: "JetBrains Mono" },
   { value: "Roboto", label: "Roboto" },
 ];
-
-const inputClass = "v2-input-compact";
-
-const labelClass = "v2-label";
 
 export default function TemplatesPage() {
   const { data: session, status } = useSession();
@@ -55,7 +71,6 @@ export default function TemplatesPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
-  const [useToast, setUseToast] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     theme: "cyberpunk",
@@ -66,6 +81,40 @@ export default function TemplatesPage() {
     isPublic: false,
   });
 
+  const applyThemeDefaults = (theme: string) => {
+    if (theme === FORMAG_THEME) {
+      return {
+        theme,
+        accentColor: FORMAG_ACCENT,
+        bgColor: FORMAG_BG,
+        fontFamily: "Inter",
+        borderRadius: "12",
+      };
+    }
+
+    if (theme === PRG_THEME) {
+      return {
+        theme,
+        accentColor: PRG_ACCENT,
+        bgColor: PRG_BG,
+        fontFamily: "Space Grotesk",
+        borderRadius: "20",
+      };
+    }
+
+    if (theme === PRG_ORANGE_THEME) {
+      return {
+        theme,
+        accentColor: PRG_ORANGE_ACCENT,
+        bgColor: PRG_ORANGE_BG,
+        fontFamily: "Space Grotesk",
+        borderRadius: "20",
+      };
+    }
+
+    return { theme };
+  };
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -74,7 +123,7 @@ export default function TemplatesPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchTemplates();
+      void fetchTemplates();
     }
   }, [status]);
 
@@ -95,7 +144,7 @@ export default function TemplatesPage() {
     setDeleting(id);
     try {
       await fetch(`/api/templates/${id}`, { method: "DELETE" });
-      setTemplates((prev) => prev.filter((t) => t.id !== id));
+      setTemplates((prev) => prev.filter((template) => template.id !== id));
     } catch {
       alert("Delete failed");
     } finally {
@@ -103,25 +152,35 @@ export default function TemplatesPage() {
     }
   };
 
-  const useTemplate = (t: Template) => {
+  const useTemplate = (template: Template) => {
     const settings = {
-      theme: t.theme,
-      accentColor: t.accentColor,
-      bgColor: t.bgColor,
-      fontFamily: t.fontFamily,
-      borderRadius: t.borderRadius,
+      theme: template.theme,
+      accentColor: template.accentColor,
+      bgColor: template.bgColor,
+      fontFamily: template.fontFamily,
+      borderRadius: template.borderRadius,
     };
+
     try {
       localStorage.setItem("cardTemplateSettings", JSON.stringify(settings));
-      setUseToast(t.id);
-      setTimeout(() => setUseToast(null), 2500);
+      localStorage.setItem(
+        "cardTemplateMeta",
+        JSON.stringify({
+          id: template.id,
+          name: template.name,
+          theme: template.theme,
+          isSystem: template.isSystem,
+        })
+      );
     } catch {
-      alert("Template copied. Apply it when creating a new card.");
+      // ignore localStorage failures and continue with routing
     }
+
+    router.push("/dashboard/cards/new");
   };
 
-  const createTemplate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const createTemplate = async (event: React.FormEvent) => {
+    event.preventDefault();
     setCreateLoading(true);
     try {
       const res = await fetch("/api/templates", {
@@ -152,373 +211,593 @@ export default function TemplatesPage() {
     }
   };
 
-  const systemTemplates = templates.filter((t) => t.isSystem);
-  const myTemplates = templates.filter((t) => !t.isSystem);
+  const systemTemplates = useMemo(
+    () => templates.filter((template) => template.isSystem),
+    [templates]
+  );
+  const myTemplates = useMemo(
+    () => templates.filter((template) => !template.isSystem),
+    [templates]
+  );
+  const publicCount = useMemo(
+    () => templates.filter((template) => template.isPublic).length,
+    [templates]
+  );
 
-  const getBadge = (t: Template) => {
-    if (t.isSystem) return "System";
-    if (t.isPublic) return "Public";
+  const getBadge = (template: Template) => {
+    if (template.isSystem) return "System";
+    if (template.isPublic) return "Public";
     return "Private";
   };
 
-  const getBadgeClass = (t: Template) => {
-    if (t.isSystem) return "bg-[var(--color-neon)]/20 text-[var(--color-neon)] border-[var(--color-neon)]/40";
-    if (t.isPublic) return "bg-blue-500/20 text-blue-300 border-blue-500/40";
-    return "bg-[var(--color-text-muted)]/20 text-[var(--color-text-muted)] border-[var(--color-border)]";
+  const getBadgeClass = (template: Template) => {
+    if (template.isSystem)
+      return "border-cyan-500/30 bg-cyan-500/10 text-cyan-200";
+    if (template.isPublic)
+      return "border-blue-500/30 bg-blue-500/10 text-blue-200";
+    return "border-white/10 bg-white/4 text-[var(--color-text-muted)]";
   };
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[var(--color-neon)] animate-spin" />
+      <div className={shellStyles.loadingPage}>
+        <Loader2 className={shellStyles.loadingSpinner} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] cyber-grid">
-      <nav className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[var(--color-neon)] rounded-md flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-black" />
-            </div>
-            <span className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-              Card<span className="text-[var(--color-neon)]">SaaS</span>
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-            >
-              Dashboard
-            </Link>
-            <span className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] hidden sm:block">
-              {session?.user?.name || session?.user?.email}
-            </span>
+    <>
+      <DashboardShell
+        eyebrow="DESIGN SYSTEM"
+        title={
+          <>
+            Template library, <span className="gradient-text">ready to reuse</span>.
+          </>
+        }
+        description="Save visual directions as reusable card templates, duplicate the look into new cards, and keep system and personal styles in one organized library."
+        navItems={[
+          { href: "/dashboard", label: "Cards", icon: CreditCard },
+          {
+            href: "/dashboard/leads",
+            label: "Leads",
+            icon: Users,
+            hiddenUntil: "md",
+          },
+          { href: "/dashboard/templates", label: "Templates", icon: Palette, active: true },
+          {
+            href: "/dashboard/team",
+            label: "Team",
+            icon: UserPlus,
+            hiddenUntil: "lg",
+          },
+          ...(session?.user?.isAdmin
+            ? [
+                {
+                  href: "/dashboard/admin",
+                  label: "Admin",
+                  icon: ShieldCheck,
+                  hiddenUntil: "lg" as const,
+                },
+              ]
+            : []),
+        ]}
+        sessionLabel={session?.user?.name || session?.user?.email}
+        onSignOut={() => signOut({ callbackUrl: "/" })}
+        heroActions={
+          <>
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors font-[family-name:var(--font-geist-mono)]"
+              onClick={() => setModalOpen(true)}
+              className={shellStyles.actionButton}
             >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign out</span>
+              <Plus className={shellStyles.buttonIcon} />
+              Create template
             </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold mb-1 font-[family-name:var(--font-geist-mono)]">
-              Card Templates
-            </h1>
-            <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-              Browse and manage reusable design templates
-            </p>
-          </div>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)]"
-          >
-            <Plus className="w-4 h-4" />
-            Create Template
-          </button>
-        </div>
-
-        {/* System templates */}
-        <section className="mb-12">
-          <h2 className="text-lg font-bold mb-4 font-[family-name:var(--font-geist-mono)] flex items-center gap-2">
-            <Palette className="w-5 h-5 text-[var(--color-neon)]" />
-            System Templates
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {systemTemplates.map((t) => (
-              <TemplateCard
-                key={t.id}
-                template={t}
-                getBadge={getBadge}
-                getBadgeClass={getBadgeClass}
-                onUse={useTemplate}
-                onDelete={null}
-                deleting={deleting}
-                useToast={useToast}
-              />
-            ))}
-          </div>
-          {systemTemplates.length === 0 && (
-            <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] py-4">
-              No system templates available yet
-            </p>
-          )}
-        </section>
-
-        {/* My templates */}
-        <section>
-          <h2 className="text-lg font-bold mb-4 font-[family-name:var(--font-geist-mono)] flex items-center gap-2">
-            <Eye className="w-5 h-5 text-[var(--color-neon)]" />
-            My Templates
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myTemplates.map((t) => (
-              <TemplateCard
-                key={t.id}
-                template={t}
-                getBadge={getBadge}
-                getBadgeClass={getBadgeClass}
-                onUse={useTemplate}
-                onDelete={deleteTemplate}
-                deleting={deleting}
-                useToast={useToast}
-                canDelete={t.userId === session?.user?.id}
-              />
-            ))}
-          </div>
-          {myTemplates.length === 0 && (
-            <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-12 text-center">
-              <Palette className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-4" />
-              <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] mb-4">
-                You do not have any templates yet
+            <Link href="/dashboard/cards/new" className={shellStyles.actionButtonGhost}>
+              <CreditCard className={shellStyles.buttonIcon} />
+              New card
+            </Link>
+          </>
+        }
+        heroAside={
+          <>
+            <div className={`${shellStyles.spotlight} glass-panel`}>
+              <p className={`mono ${shellStyles.spotlightLabel}`}>LIBRARY SIGNAL</p>
+              <h2 className={shellStyles.spotlightTitle}>
+                {templates.length} template{templates.length === 1 ? "" : "s"} in the library.
+              </h2>
+              <p className={shellStyles.spotlightText}>
+                System templates give you a fast starting point. Personal templates let you capture repeatable style decisions for future launches.
               </p>
-              <button
-                onClick={() => setModalOpen(true)}
-                className="v2-button-compact text-sm font-[family-name:var(--font-geist-mono)]"
-              >
-                <Plus className="w-4 h-4" />
-                Create Template
-              </button>
+              <div className={shellStyles.spotlightBadges}>
+                <span className={shellStyles.spotlightBadge}>
+                  <Palette className={shellStyles.spotlightBadgeIcon} />
+                  Theme presets
+                </span>
+                <span className={shellStyles.spotlightBadge}>
+                  <CreditCard className={shellStyles.spotlightBadgeIcon} />
+                  Direct create flow
+                </span>
+              </div>
+            </div>
+
+            <div className={shellStyles.metricGrid}>
+              <div className={shellStyles.metricTile}>
+                <span className={shellStyles.metricTileLabel}>System</span>
+                <span className={shellStyles.metricTileValue}>{systemTemplates.length}</span>
+              </div>
+              <div className={shellStyles.metricTile}>
+                <span className={shellStyles.metricTileLabel}>Public</span>
+                <span className={shellStyles.metricTileValue}>{publicCount}</span>
+              </div>
+            </div>
+          </>
+        }
+        stats={[
+          {
+            label: "Library",
+            value: templates.length,
+            hint: "All templates visible to this account.",
+          },
+          {
+            label: "System",
+            value: systemTemplates.length,
+            hint: "Platform-provided starting points.",
+            tone: "violet",
+          },
+          {
+            label: "Personal",
+            value: myTemplates.length,
+            hint: "Templates created or owned by users.",
+            tone: "emerald",
+          },
+          {
+            label: "Public",
+            value: publicCount,
+            hint: "Templates marked as shareable.",
+            tone: "amber",
+          },
+        ]}
+      >
+        <section className={`${shellStyles.surfaceCard} glass-panel`}>
+          <div className={shellStyles.surfaceHeader}>
+            <div>
+              <p className={`mono ${shellStyles.spotlightLabel}`}>SYSTEM TEMPLATES</p>
+              <h2 className={shellStyles.surfaceTitle}>Built-in visual directions</h2>
+              <p className={shellStyles.surfaceDescription}>
+                Use these as the base layer when you need a fast launch with a pre-built style.
+              </p>
+            </div>
+          </div>
+
+          {systemTemplates.length === 0 ? (
+            <div className={shellStyles.emptyState}>
+              <div className={shellStyles.emptyIconWrap}>
+                <Palette className={shellStyles.emptyIcon} />
+              </div>
+              <h3 className={shellStyles.emptyTitle}>No system templates yet</h3>
+              <p className={shellStyles.emptyText}>
+                Once system presets are added, they will appear here automatically.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {systemTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  getBadge={getBadge}
+                  getBadgeClass={getBadgeClass}
+                  onUse={useTemplate}
+                  onDelete={null}
+                  deleting={deleting}
+                />
+              ))}
             </div>
           )}
         </section>
-      </main>
 
-      {/* Create template modal */}
+        <section className={`${shellStyles.surfaceCard} glass-panel`}>
+          <div className={shellStyles.surfaceHeader}>
+            <div>
+              <p className={`mono ${shellStyles.spotlightLabel}`}>MY TEMPLATES</p>
+              <h2 className={shellStyles.surfaceTitle}>Saved personal presets</h2>
+              <p className={shellStyles.surfaceDescription}>
+                Keep your repeatable design language close and reapply it when creating new cards.
+              </p>
+            </div>
+          </div>
+
+          {myTemplates.length === 0 ? (
+            <div className={shellStyles.emptyState}>
+              <div className={shellStyles.emptyIconWrap}>
+                <Eye className={shellStyles.emptyIcon} />
+              </div>
+              <h3 className={shellStyles.emptyTitle}>You do not have any templates yet</h3>
+              <p className={shellStyles.emptyText}>
+                Create your first reusable style preset and it will appear here.
+              </p>
+              <div className={`${shellStyles.buttonRow} mt-6 justify-center`}>
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className={shellStyles.actionButton}
+                >
+                  <Plus className={shellStyles.buttonIcon} />
+                  Create template
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {myTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  getBadge={getBadge}
+                  getBadgeClass={getBadgeClass}
+                  onUse={useTemplate}
+                  onDelete={deleteTemplate}
+                  deleting={deleting}
+                  canDelete={template.userId === session?.user?.id}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </DashboardShell>
+
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/72 backdrop-blur-md"
           onClick={() => !createLoading && setModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            className={`${shellStyles.surfaceCard} glass-panel w-full max-w-2xl`}
+            onClick={(event) => event.stopPropagation()}
           >
-            <h3 className="text-xl font-bold mb-6 font-[family-name:var(--font-geist-mono)]">
-              Create Template
-            </h3>
-            <form onSubmit={createTemplate} className="space-y-4">
+            <div className={shellStyles.surfaceHeader}>
               <div>
-                <label className={labelClass}>Name</label>
+                <p className={`mono ${shellStyles.spotlightLabel}`}>CREATE TEMPLATE</p>
+                <h3 className={shellStyles.surfaceTitle}>Capture a reusable visual preset</h3>
+                <p className={shellStyles.surfaceDescription}>
+                  Save your preferred theme, colors, typography, and corner profile for future cards.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={createTemplate} className="space-y-5">
+              <label className="block">
+                <span className={shellStyles.toolbarHint}>Name</span>
                 <input
                   type="text"
                   value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className={inputClass}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, name: event.target.value }))
+                  }
+                  className={`${shellStyles.toolbarInput} mt-2`}
                   placeholder="My template"
                   required
                 />
-              </div>
-              <div>
-                <label className={labelClass}>Theme</label>
-                <select
-                  value={form.theme}
-                  onChange={(e) => setForm((f) => ({ ...f, theme: e.target.value }))}
-                  className={inputClass}
-                >
-                  {THEME_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Accent Color</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="color"
-                      value={form.accentColor}
-                      onChange={(e) => setForm((f) => ({ ...f, accentColor: e.target.value }))}
-                      className="w-12 h-12 rounded-lg cursor-pointer border border-[var(--color-border)] bg-transparent"
-                    />
-                    <input
-                      type="text"
-                      value={form.accentColor}
-                      onChange={(e) => setForm((f) => ({ ...f, accentColor: e.target.value }))}
-                      className={`${inputClass} flex-1`}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className={labelClass}>Background</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="color"
-                      value={form.bgColor}
-                      onChange={(e) => setForm((f) => ({ ...f, bgColor: e.target.value }))}
-                      className="w-12 h-12 rounded-lg cursor-pointer border border-[var(--color-border)] bg-transparent"
-                    />
-                    <input
-                      type="text"
-                      value={form.bgColor}
-                      onChange={(e) => setForm((f) => ({ ...f, bgColor: e.target.value }))}
-                      className={`${inputClass} flex-1`}
-                    />
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label className={labelClass}>Font</label>
-                <select
-                  value={form.fontFamily}
-                  onChange={(e) => setForm((f) => ({ ...f, fontFamily: e.target.value }))}
-                  className={inputClass}
-                >
-                  {FONT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>
-                  Corner Radius: {form.borderRadius}
+              </label>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <label className="block">
+                  <span className={shellStyles.toolbarHint}>Theme</span>
+                  <select
+                    value={form.theme}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        ...applyThemeDefaults(event.target.value),
+                      }))
+                    }
+                    className={`${shellStyles.toolbarSelect} mt-2`}
+                  >
+                    {THEME_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
+
+                <label className="block">
+                  <span className={shellStyles.toolbarHint}>Font</span>
+                  <select
+                    value={form.fontFamily}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        fontFamily: event.target.value,
+                      }))
+                    }
+                    className={`${shellStyles.toolbarSelect} mt-2`}
+                  >
+                    {FONT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {form.theme === FORMAG_THEME && (
+                <div className="rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--color-text-muted)]">
+                  Formag Corporate keeps its brand colors and rounded geometry fixed.
+                </div>
+              )}
+
+              {(form.theme === PRG_THEME || form.theme === PRG_ORANGE_THEME) && (
+                <div className="rounded-3xl border border-cyan-400/15 bg-cyan-400/[0.07] px-4 py-3 text-sm text-cyan-50/80">
+                  PRG Tech keeps its palette, typography, and card geometry fixed.
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <label className="block">
+                  <span className={shellStyles.toolbarHint}>Accent color</span>
+                  <div className="flex gap-3 mt-2">
+                    <input
+                      type="color"
+                      value={form.accentColor}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          accentColor: event.target.value,
+                        }))
+                      }
+                      className="w-14 h-14 rounded-2xl cursor-pointer border border-white/10 bg-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={form.accentColor}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          accentColor: event.target.value,
+                        }))
+                      }
+                      className={shellStyles.toolbarInput}
+                    />
+                  </div>
+                </label>
+
+                <label className="block">
+                  <span className={shellStyles.toolbarHint}>Background color</span>
+                  <div className="flex gap-3 mt-2">
+                    <input
+                      type="color"
+                      value={form.bgColor}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          bgColor: event.target.value,
+                        }))
+                      }
+                      className="w-14 h-14 rounded-2xl cursor-pointer border border-white/10 bg-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={form.bgColor}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          bgColor: event.target.value,
+                        }))
+                      }
+                      className={shellStyles.toolbarInput}
+                    />
+                  </div>
+                </label>
+              </div>
+
+              <label className="block">
+                <span className={shellStyles.toolbarHint}>
+                  Corner radius: {form.borderRadius}
+                </span>
                 <input
                   type="range"
                   min="0"
                   max="24"
                   value={form.borderRadius}
-                  onChange={(e) => setForm((f) => ({ ...f, borderRadius: e.target.value }))}
-                  className="w-full h-2 bg-[var(--color-bg-base)] rounded-lg appearance-none cursor-pointer accent-[var(--color-neon)]"
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      borderRadius: event.target.value,
+                    }))
+                  }
+                  className="mt-3 w-full h-2 bg-[var(--color-bg-base)] rounded-full appearance-none cursor-pointer accent-[var(--color-cyan)]"
                 />
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer">
+              </label>
+
+              <label className="inline-flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={form.isPublic}
-                  onChange={(e) => setForm((f) => ({ ...f, isPublic: e.target.checked }))}
-                  className="w-4 h-4 rounded border-[var(--color-border)] bg-[var(--color-bg-base)] accent-[var(--color-neon)]"
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      isPublic: event.target.checked,
+                    }))
+                  }
+                  className="w-4 h-4 rounded border-white/10 bg-[var(--color-bg-base)] accent-[var(--color-cyan)]"
                 />
-                <span className="text-sm font-[family-name:var(--font-geist-mono)]">
+                <span className="text-sm text-[var(--color-text-main)]">
                   Public template
                 </span>
               </label>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={createLoading}
-                  className="v2-button-compact flex-1 text-sm font-[family-name:var(--font-geist-mono)] disabled:opacity-50"
-                >
-                  {createLoading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Plus className="w-4 h-4" />
-                  )}
-                  Create
-                </button>
+
+              <div className={`${shellStyles.buttonRow} pt-2 justify-end`}>
                 <button
                   type="button"
                   onClick={() => !createLoading && setModalOpen(false)}
-                  className="v2-link-button text-sm font-[family-name:var(--font-geist-mono)]"
+                  className={shellStyles.actionButtonGhost}
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createLoading}
+                  className={shellStyles.actionButton}
+                >
+                  {createLoading ? (
+                    <Loader2 className={shellStyles.buttonIcon} />
+                  ) : (
+                    <Plus className={shellStyles.buttonIcon} />
+                  )}
+                  Create
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
 function TemplateCard({
-  template: t,
+  template,
   getBadge,
   getBadgeClass,
   onUse,
   onDelete,
   deleting,
-  useToast,
   canDelete = false,
 }: {
   template: Template;
-  getBadge: (t: Template) => string;
-  getBadgeClass: (t: Template) => string;
-  onUse: (t: Template) => void;
+  getBadge: (template: Template) => string;
+  getBadgeClass: (template: Template) => string;
+  onUse: (template: Template) => void;
   onDelete: ((id: string) => void) | null;
   deleting: string | null;
-  useToast: string | null;
   canDelete?: boolean;
 }) {
+  const radius = Math.min(parseInt(template.borderRadius || "16", 10), 24);
+  const isFormagSystem = template.isSystem && template.theme === FORMAG_THEME;
+  const isPrgSystem =
+    template.isSystem &&
+    (template.theme === PRG_THEME || template.theme === PRG_ORANGE_THEME);
+
   return (
-    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden hover:border-[var(--color-neon)]/50 transition-all group">
-      {/* Mini preview */}
+    <article className={`${shellStyles.surfaceCard} glass-panel`}>
       <div
-        className="h-24 flex items-center justify-center relative"
+        className="rounded-[24px] p-5 mb-5 relative overflow-hidden"
         style={{
-          background: t.bgColor,
-          borderBottom: `3px solid ${t.accentColor}`,
+          background: `linear-gradient(145deg, ${template.bgColor}, ${template.bgColor}dd)`,
+          border: `1px solid ${template.accentColor}25`,
         }}
       >
         <div
-          className="w-16 h-10 rounded-md border-2"
+          className="absolute inset-0 opacity-20"
           style={{
-            backgroundColor: t.bgColor,
-            borderColor: t.accentColor,
-            borderRadius: `${Math.min(parseInt(t.borderRadius || "16", 10), 24)}px`,
+            background: `radial-gradient(circle at top right, ${template.accentColor}, transparent 42%)`,
           }}
         />
-      </div>
-      <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-bold font-[family-name:var(--font-geist-mono)]">
-            {t.name}
-          </h3>
-          <span
-            className={`text-[10px] px-2 py-0.5 rounded border font-[family-name:var(--font-geist-mono)] ${getBadgeClass(t)}`}
-          >
-            {getBadge(t)}
-          </span>
-        </div>
-        <p className="text-xs text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] mb-4">
-          {THEME_OPTIONS.find((o) => o.value === t.theme)?.label || t.theme}
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onUse(t)}
-            className="flex items-center gap-1 text-xs bg-[var(--color-neon)]/10 border border-[var(--color-neon)]/30 text-[var(--color-neon)] px-3 py-2 rounded-md hover:bg-[var(--color-neon)] hover:text-black transition-all font-[family-name:var(--font-geist-mono)]"
-          >
-            {useToast === t.id ? (
-              <>
-                <Copy className="w-3 h-3" />
-                Copied! Apply it when creating a new card
-              </>
-            ) : (
-              <>
-                <Copy className="w-3 h-3" />
-                Use Template
-              </>
-            )}
-          </button>
-          {canDelete && onDelete && (
-            <button
-              onClick={() => onDelete(t.id)}
-              disabled={deleting === t.id}
-              className="flex items-center gap-1 text-xs bg-[var(--color-bg-base)] border border-[var(--color-border)] px-3 py-2 rounded-md hover:border-[var(--color-neon-danger)] hover:text-[var(--color-neon-danger)] transition-colors ml-auto"
-            >
-              {deleting === t.id ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <Trash2 className="w-3 h-3" />
-              )}
-            </button>
+
+        <div
+          className="relative mx-auto h-28 max-w-[220px] rounded-[28px] border p-4"
+          style={{
+            backgroundColor: template.bgColor,
+            borderColor: template.accentColor,
+            borderRadius: `${radius}px`,
+            boxShadow: `0 20px 50px ${template.accentColor}22`,
+          }}
+        >
+          {isPrgSystem ? (
+            <>
+              <div
+                className="absolute inset-0 opacity-30"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
+                  backgroundSize: "16px 16px",
+                }}
+              />
+              <div
+                className="relative inline-flex h-8 min-w-[54px] items-center justify-center rounded-2xl border px-3 text-sm font-semibold tracking-[0.18em]"
+                style={{
+                  color: template.accentColor,
+                  borderColor: `${template.accentColor}55`,
+                  backgroundColor: `${template.accentColor}12`,
+                }}
+              >
+                PRG
+              </div>
+              <div className="relative mt-5 space-y-2">
+                <div className="h-3 w-28 rounded-full bg-white/75" />
+                <div className="h-2.5 w-20 rounded-full bg-white/30" />
+                <div
+                  className="mt-3 h-9 rounded-2xl"
+                  style={{
+                    background: `linear-gradient(135deg, ${template.accentColor}30, transparent)`,
+                    border: `1px solid ${template.accentColor}35`,
+                  }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div
+                className="h-1.5 rounded-full"
+                style={{ backgroundColor: template.accentColor }}
+              />
+              <div className="mt-4 space-y-2">
+                <div className="h-3 w-24 rounded-full bg-white/60" />
+                <div className="h-2.5 w-16 rounded-full bg-white/25" />
+                <div className="h-2.5 w-20 rounded-full bg-white/18" />
+              </div>
+            </>
           )}
         </div>
       </div>
-    </div>
+
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 className="text-xl font-semibold tracking-tight">{template.name}</h3>
+          <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+            {THEME_OPTIONS.find((option) => option.value === template.theme)?.label ||
+              template.theme}
+            {" • "}
+            {template.fontFamily}
+          </p>
+        </div>
+        <span
+          className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-[family-name:var(--font-mono)] ${getBadgeClass(template)}`}
+        >
+          {getBadge(template)}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className={shellStyles.badge}>Radius {template.borderRadius}</span>
+        <span className={shellStyles.badge}>{template.accentColor}</span>
+        {isPrgSystem ? (
+          <span className={shellStyles.badge}>Precision tech</span>
+        ) : null}
+      </div>
+
+      <div className={shellStyles.buttonRow}>
+        <button onClick={() => onUse(template)} className={shellStyles.actionButton}>
+          <CreditCard className={shellStyles.buttonIcon} />
+          {isFormagSystem ? "Create card" : "Use template"}
+        </button>
+        {canDelete && onDelete && (
+          <button
+            onClick={() => onDelete(template.id)}
+            disabled={deleting === template.id}
+            className={shellStyles.actionButtonDanger}
+          >
+            {deleting === template.id ? (
+              <Loader2 className={shellStyles.buttonIcon} />
+            ) : (
+              <Trash2 className={shellStyles.buttonIcon} />
+            )}
+            Delete
+          </button>
+        )}
+      </div>
+    </article>
   );
 }

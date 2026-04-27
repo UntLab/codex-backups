@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { CreditCard, LogIn, Loader2 } from "lucide-react";
-import styles from "./login.module.css";
+import { LogIn, Loader2 } from "lucide-react";
+import AuthShell from "../AuthShell";
+import styles from "../auth.module.css";
 
 function getErrorMessage(authError?: string | null): string {
   if (authError === "CredentialsSignin") {
@@ -64,76 +65,67 @@ export default function LoginForm({
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.orbLeft} />
-      <div className={styles.orbRight} />
-
-      <div className={styles.header}>
-        <Link href="/" className={styles.brand}>
-          <div className={styles.brandIcon}>
-            <CreditCard className={styles.brandIconSvg} />
-          </div>
-          <span className={styles.brandText}>
-            v.<span className={styles.brandAccent}>2ai</span>
-          </span>
-        </Link>
-        <h1 className={styles.title}>Sign In</h1>
-        <p className={styles.subtitle}>
-          Enter your credentials to access your account
-        </p>
-      </div>
-
-      <div className={styles.cardWrap}>
-        <div className={styles.cardGlow} />
-        <div className={styles.card}>
-          <form onSubmit={handleSubmit} className={styles.form}>
-            {error && <div className={styles.error}>{error}</div>}
-
-            <div className={styles.field}>
-              <label className={styles.label}>Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className={styles.input}
-              />
-            </div>
-
-            <div className={styles.field}>
-              <label className={styles.label}>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="••••••••"
-                className={styles.input}
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || normalizedEmail.length === 0}
-              className={styles.submit}
-            >
-              {loading ? (
-                <Loader2 className={styles.submitIcon} />
-              ) : (
-                <LogIn className={styles.submitIcon} />
-              )}
-              {loading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-
-          <div className={styles.footer}>
-            No account yet?{" "}
-            <Link href="/register" className={styles.footerLink}>
-              Create an account
-            </Link>
-          </div>
+    <AuthShell
+      panelEyebrow="ACCESS PORTAL"
+      panelTitle="Sign in to your workspace"
+      panelDescription="Return to your private control layer for cards, leads, themes, and manual activation flow."
+      secondaryHref="/register"
+      secondaryLabel="Create account"
+      footer={
+        <div className={styles.footer}>
+          No account yet?{" "}
+          <Link href="/register" className={styles.footerLink}>
+            Create an account
+          </Link>
         </div>
-      </div>
-    </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className={styles.form}>
+        {error && <div className={styles.error}>{error}</div>}
+
+        <div className={styles.field}>
+          <label className={styles.label}>Email address</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className={styles.input}
+            placeholder="name@company.com"
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            placeholder="Enter your password"
+            className={styles.input}
+          />
+        </div>
+
+        <div className={styles.metaRow}>
+          <Link href="/forgot-password" className={styles.inlineLink}>
+            Forgot password?
+          </Link>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading || normalizedEmail.length === 0}
+          className={styles.submit}
+        >
+          {loading ? (
+            <Loader2 className={styles.submitIcon} />
+          ) : (
+            <LogIn className={styles.submitIcon} />
+          )}
+          {loading ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
+    </AuthShell>
   );
 }

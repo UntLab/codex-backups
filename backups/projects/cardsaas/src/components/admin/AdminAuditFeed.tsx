@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Clock3, History, ShieldCheck } from "lucide-react";
+import shellStyles from "@/components/dashboard/dashboard-shell.module.css";
 
 export interface AdminAuditEntry {
   id: string;
@@ -49,32 +50,47 @@ export default function AdminAuditFeed({
   emptyText?: string;
 }) {
   return (
-    <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <History className="w-4 h-4 text-[var(--color-neon)]" />
-        <h2 className="text-lg font-semibold">{title}</h2>
+    <section className={`${shellStyles.surfaceCard} glass-panel`}>
+      <div className={shellStyles.surfaceHeader}>
+        <div>
+          <p className={`mono ${shellStyles.spotlightLabel}`}>AUDIT FEED</p>
+          <h2 className={shellStyles.surfaceTitle}>{title}</h2>
+          <p className={shellStyles.surfaceDescription}>
+            Trace approvals, pauses, notes, and owner-level operations in one
+            running timeline.
+          </p>
+        </div>
+
+        <div className={shellStyles.pill}>
+          <History className={shellStyles.pillIcon} />
+          Activity stream
+        </div>
       </div>
 
       {entries.length === 0 ? (
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] p-6 text-sm text-[var(--color-text-muted)]">
-          {emptyText}
+        <div className={`${shellStyles.emptyState} glass-panel`}>
+          <div className={shellStyles.emptyIconWrap}>
+            <History className={shellStyles.emptyIcon} />
+          </div>
+          <h3 className={shellStyles.emptyTitle}>No audit activity yet</h3>
+          <p className={shellStyles.emptyText}>{emptyText}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {entries.map((entry) => (
             <article
               key={entry.id}
-              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-base)] p-4"
+              className={`${shellStyles.surfaceCard} glass-panel`}
             >
               <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-neon)]/20 bg-[var(--color-neon)]/10 px-3 py-1 text-xs text-[var(--color-neon)] font-[family-name:var(--font-geist-mono)]">
-                      <ShieldCheck className="w-3.5 h-3.5" />
+                    <span className={shellStyles.badge}>
+                      <ShieldCheck className={shellStyles.badgeIcon} />
                       {formatActionLabel(entry.action)}
                     </span>
                     {entry.status && (
-                      <span className="inline-flex rounded-full border border-[var(--color-border)] px-3 py-1 text-xs font-[family-name:var(--font-geist-mono)]">
+                      <span className={shellStyles.badge}>
                         {entry.status}
                       </span>
                     )}
@@ -105,7 +121,7 @@ export default function AdminAuditFeed({
                   </div>
 
                   {entry.note && (
-                    <p className="mt-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-sm">
+                    <p className="mt-3 rounded-2xl border border-white/8 bg-white/4 px-4 py-3 text-sm leading-7">
                       {entry.note}
                     </p>
                   )}

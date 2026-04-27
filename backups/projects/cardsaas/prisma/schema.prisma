@@ -92,8 +92,10 @@ model Card {
   company   String?
   bio       String?
   phone     String?
+  secondaryPhone String?
   email     String?
   website   String?
+  officeAddress String?
   avatarUrl String?
 
   github    String?

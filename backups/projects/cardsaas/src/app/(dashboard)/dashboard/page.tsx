@@ -1,27 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  CreditCard,
-  Plus,
-  Eye,
-  ExternalLink,
-  Pencil,
-  Trash2,
-  QrCode,
-  LogOut,
-  Loader2,
   AlertTriangle,
   CheckCircle,
-  XCircle,
-  Users,
+  CreditCard,
+  ExternalLink,
+  Eye,
+  Loader2,
+  PauseCircle,
   Palette,
-  UserPlus,
+  Pencil,
+  Plus,
+  QrCode,
   ShieldCheck,
+  Trash2,
+  UserPlus,
+  Users,
+  Workflow,
+  XCircle,
 } from "lucide-react";
+import DashboardShell from "@/components/dashboard/DashboardShell";
+import shellStyles from "@/components/dashboard/dashboard-shell.module.css";
 import {
   clientBillingMode,
   getManualCardStatus,
@@ -55,6 +58,7 @@ export default function DashboardPage() {
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [quickUpdating, setQuickUpdating] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -64,7 +68,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetchCards();
+      void fetchCards();
     }
   }, [status]);
 
@@ -93,6 +97,33 @@ export default function DashboardPage() {
     }
   };
 
+  const quickUpdateStatus = async (
+    id: string,
+    nextStatus: ManualCardStatus
+  ) => {
+    setQuickUpdating(id);
+
+    try {
+      const res = await fetch(`/api/admin/cards/${id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update card status");
+      }
+
+      await fetchCards();
+    } catch {
+      alert("Quick status update failed");
+    } finally {
+      setQuickUpdating(null);
+    }
+  };
+
   const getTrialEndDate = (card: CardData) => {
     if (card.trialEndsAt) return new Date(card.trialEndsAt);
     const fallback = new Date(card.createdAt);
@@ -107,14 +138,17 @@ export default function DashboardPage() {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   };
 
+  const getResolvedManualStatus = (card: CardData) =>
+    card.manualStatus ?? getManualCardStatus(card);
+
   const getStatusBadge = (card: CardData) => {
     if (isManualMode) {
-      const manualStatus = card.manualStatus ?? getManualCardStatus(card);
+      const manualStatus = getResolvedManualStatus(card);
 
       if (manualStatus === "active") {
         return (
-          <span className="flex items-center gap-1 text-xs font-[family-name:var(--font-geist-mono)] text-emerald-300">
-            <CheckCircle className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200 font-[family-name:var(--font-mono)]">
+            <CheckCircle className="w-3.5 h-3.5" />
             {MANUAL_CARD_STATUS_LABELS.active}
           </span>
         );
@@ -122,16 +156,16 @@ export default function DashboardPage() {
 
       if (manualStatus === "paused") {
         return (
-          <span className="flex items-center gap-1 text-xs font-[family-name:var(--font-geist-mono)] text-rose-300">
-            <XCircle className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-xs text-rose-200 font-[family-name:var(--font-mono)]">
+            <XCircle className="w-3.5 h-3.5" />
             {MANUAL_CARD_STATUS_LABELS.paused}
           </span>
         );
       }
 
       return (
-        <span className="flex items-center gap-1 text-xs font-[family-name:var(--font-geist-mono)] text-amber-300">
-          <AlertTriangle className="w-3 h-3" />
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-200 font-[family-name:var(--font-mono)]">
+          <AlertTriangle className="w-3.5 h-3.5" />
           {MANUAL_CARD_STATUS_LABELS.pending}
         </span>
       );
@@ -140,8 +174,8 @@ export default function DashboardPage() {
     const sub = card.subscription;
     if (sub?.status === "active") {
       return (
-        <span className="flex items-center gap-1 text-xs font-[family-name:var(--font-geist-mono)] text-yellow-400">
-          <CheckCircle className="w-3 h-3" />
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200 font-[family-name:var(--font-mono)]">
+          <CheckCircle className="w-3.5 h-3.5" />
           Active
         </span>
       );
@@ -151,230 +185,406 @@ export default function DashboardPage() {
 
     if (trialDaysLeft > 0) {
       return (
-        <span className="flex items-center gap-1 text-xs font-[family-name:var(--font-geist-mono)] text-cyan-300">
-          <AlertTriangle className="w-3 h-3" />
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200 font-[family-name:var(--font-mono)]">
+          <AlertTriangle className="w-3.5 h-3.5" />
           Trial: {trialDaysLeft}d left
         </span>
       );
     }
 
     return (
-      <span className="flex items-center gap-1 text-xs font-[family-name:var(--font-geist-mono)] text-amber-300">
-        <XCircle className="w-3 h-3" />
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs text-amber-200 font-[family-name:var(--font-mono)]">
+        <XCircle className="w-3.5 h-3.5" />
         Billing paused
       </span>
     );
   };
 
+  const totalViews = useMemo(
+    () => cards.reduce((sum, card) => sum + card._count.views, 0),
+    [cards]
+  );
+
+  const liveCards = useMemo(() => {
+    if (isManualMode) {
+      return cards.filter((card) => getResolvedManualStatus(card) === "active")
+        .length;
+    }
+
+    return cards.filter((card) => card.subscription?.status === "active").length;
+  }, [cards, isManualMode]);
+
+  const pendingCards = useMemo(() => {
+    if (isManualMode) {
+      return cards.filter((card) => getResolvedManualStatus(card) === "pending")
+        .length;
+    }
+
+    return cards.filter((card) => {
+      if (card.subscription?.status === "active") return false;
+      const trialEnd = card.trialEndsAt
+        ? new Date(card.trialEndsAt)
+        : (() => {
+            const fallback = new Date(card.createdAt);
+            fallback.setDate(fallback.getDate() + 14);
+            return fallback;
+          })();
+      const diff = trialEnd.getTime() - Date.now();
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24))) > 0;
+    }).length;
+  }, [cards, isManualMode]);
+
+  const pausedCards = useMemo(() => {
+    if (isManualMode) {
+      return cards.filter((card) => getResolvedManualStatus(card) === "paused")
+        .length;
+    }
+
+    return cards.filter((card) => {
+      if (card.subscription?.status === "active") return false;
+      const trialEnd = card.trialEndsAt
+        ? new Date(card.trialEndsAt)
+        : (() => {
+            const fallback = new Date(card.createdAt);
+            fallback.setDate(fallback.getDate() + 14);
+            return fallback;
+          })();
+      const diff = trialEnd.getTime() - Date.now();
+      return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24))) === 0;
+    }).length;
+  }, [cards, isManualMode]);
+
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-bg-base)] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-[var(--color-neon)] animate-spin" />
+      <div className={shellStyles.loadingPage}>
+        <Loader2 className={shellStyles.loadingSpinner} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-base)] cyber-grid">
-      <nav className="border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[var(--color-neon)] rounded-md flex items-center justify-center">
-              <CreditCard className="w-4 h-4 text-black" />
-            </div>
-            <span className="text-xl font-bold font-[family-name:var(--font-geist-mono)]">
-              Card<span className="text-[var(--color-neon)]">SaaS</span>
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard/leads"
-              className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)] hidden md:flex"
-            >
-              <Users className="w-4 h-4" />
-              Leads
-            </Link>
-            <Link
-              href="/dashboard/templates"
-              className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)] hidden md:flex"
-            >
-              <Palette className="w-4 h-4" />
-              Templates
-            </Link>
-            <Link
-              href="/dashboard/team"
-              className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)] hidden md:flex"
-            >
-              <UserPlus className="w-4 h-4" />
-              Team
-            </Link>
-            {session?.user?.isAdmin && (
-              <Link
-                href="/dashboard/admin"
-                className="flex items-center gap-1.5 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)] hidden md:flex"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                Admin
-              </Link>
-            )}
-            <span className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)] hidden sm:block">
-              {session?.user?.name || session?.user?.email}
-            </span>
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-neon-danger)] transition-colors font-[family-name:var(--font-geist-mono)]"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Sign out</span>
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">My Cards</h1>
-            <p className="text-sm text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-              Manage your digital business cards
-            </p>
-          </div>
-          <Link
-            href="/dashboard/cards/new"
-            className="flex items-center gap-2 bg-[var(--color-neon)] text-black px-5 py-2.5 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)]"
-          >
-            <Plus className="w-4 h-4" />
+    <DashboardShell
+      eyebrow="WORKSPACE OVERVIEW"
+      title={
+        <>
+          Your cards, <span className="gradient-text">ready to ship</span>.
+        </>
+      }
+      description="Launch premium identity cards, keep approval state visible, and move between edits, templates, leads, and public sharing without dropping out of the product rhythm."
+      navItems={[
+        { href: "/dashboard", label: "Cards", icon: CreditCard, active: true },
+        {
+          href: "/dashboard/leads",
+          label: "Leads",
+          icon: Users,
+          hiddenUntil: "md",
+        },
+        {
+          href: "/dashboard/templates",
+          label: "Templates",
+          icon: Palette,
+          hiddenUntil: "md",
+        },
+        {
+          href: "/dashboard/team",
+          label: "Team",
+          icon: UserPlus,
+          hiddenUntil: "lg",
+        },
+        ...(session?.user?.isAdmin
+          ? [
+              {
+                href: "/dashboard/admin",
+                label: "Admin",
+                icon: ShieldCheck,
+                hiddenUntil: "lg" as const,
+              },
+            ]
+          : []),
+      ]}
+      sessionLabel={session?.user?.name || session?.user?.email}
+      onSignOut={() => signOut({ callbackUrl: "/" })}
+      heroActions={
+        <>
+          <Link href="/dashboard/cards/new" className={shellStyles.actionButton}>
+            <Plus className={shellStyles.buttonIcon} />
             New Card
           </Link>
-        </div>
-
-        {cards.length === 0 ? (
-          <div className="text-center py-20 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
-            <CreditCard className="w-12 h-12 text-[var(--color-text-muted)] mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No cards yet</h3>
-            <p className="text-sm text-[var(--color-text-muted)] mb-6">
-              Create your first digital business card in minutes
+          <Link
+            href="/dashboard/leads"
+            className={shellStyles.actionButtonGhost}
+          >
+            <Users className={shellStyles.buttonIcon} />
+            Open Leads
+          </Link>
+        </>
+      }
+      heroAside={
+        <>
+          <div className={`${shellStyles.spotlight} glass-panel`}>
+            <p className={`mono ${shellStyles.spotlightLabel}`}>WORKSPACE SIGNAL</p>
+            <h2 className={shellStyles.spotlightTitle}>
+              {cards.length === 0
+                ? "Start by generating your first live identity card."
+                : `${liveCards} card${liveCards === 1 ? "" : "s"} live right now.`}
+            </h2>
+            <p className={shellStyles.spotlightText}>
+              {isManualMode
+                ? "Manual activation is enabled, so every card clearly shows whether it is pending, active, or paused before anyone sees it publicly."
+                : "Billing mode is active, so trial and subscription state stay attached to each card while you manage edits and launches."}
             </p>
-            <Link
-              href="/dashboard/cards/new"
-              className="inline-flex items-center gap-2 bg-[var(--color-neon)] text-black px-6 py-3 rounded-lg font-bold text-sm hover:shadow-[0_0_20px_rgba(0,255,204,0.4)] transition-all font-[family-name:var(--font-geist-mono)]"
-            >
-              <Plus className="w-4 h-4" />
-              Create Card
-            </Link>
+            <div className={shellStyles.spotlightBadges}>
+              <span className={shellStyles.spotlightBadge}>
+                <ShieldCheck className={shellStyles.spotlightBadgeIcon} />
+                {isManualMode ? "Manual approval" : "Subscription mode"}
+              </span>
+              <span className={shellStyles.spotlightBadge}>
+                <Workflow className={shellStyles.spotlightBadgeIcon} />
+                Public share flow
+              </span>
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cards.map((card) => (
-              <div
-                key={card.id}
-                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-hidden hover:border-[var(--color-neon)]/50 transition-all group"
+
+          <div className={shellStyles.metricGrid}>
+            <div className={shellStyles.metricTile}>
+              <span className={shellStyles.metricTileLabel}>Views captured</span>
+              <span className={shellStyles.metricTileValue}>{totalViews}</span>
+            </div>
+            <div className={shellStyles.metricTile}>
+              <span className={shellStyles.metricTileLabel}>Paused / blocked</span>
+              <span className={shellStyles.metricTileValue}>{pausedCards}</span>
+            </div>
+          </div>
+        </>
+      }
+      stats={[
+        {
+          label: "Cards",
+          value: cards.length,
+          hint: "Total identity cards currently managed in this workspace.",
+        },
+        {
+          label: "Live",
+          value: liveCards,
+          hint: "Cards currently available to the public.",
+          tone: "emerald",
+        },
+        {
+          label: "Pending",
+          value: pendingCards,
+          hint: isManualMode
+            ? "Cards waiting for manual activation."
+            : "Cards still in trial or not yet activated.",
+          tone: "amber",
+        },
+        {
+          label: "Views",
+          value: totalViews,
+          hint: "Combined public traffic across your cards.",
+          tone: "violet",
+        },
+      ]}
+    >
+      {cards.length === 0 ? (
+        <section className={`${shellStyles.surfaceCard} glass-panel`}>
+          <div className={shellStyles.emptyState}>
+            <div className={shellStyles.emptyIconWrap}>
+              <CreditCard className={shellStyles.emptyIcon} />
+            </div>
+            <h2 className={shellStyles.emptyTitle}>No cards yet</h2>
+            <p className={shellStyles.emptyText}>
+              Create your first digital business card and the workspace will
+              instantly start tracking views, status, and launch readiness.
+            </p>
+            <div className={`${shellStyles.buttonRow} mt-6 justify-center`}>
+              <Link
+                href="/dashboard/cards/new"
+                className={shellStyles.actionButton}
               >
-                <div
-                  className="h-2"
-                  style={{ backgroundColor: card.accentColor }}
-                />
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="font-bold text-lg">{card.fullName}</h3>
-                      {card.jobTitle && (
-                        <p className="text-sm text-[var(--color-neon)] font-[family-name:var(--font-geist-mono)]">
-                          {card.jobTitle}
-                        </p>
-                      )}
-                      {card.company && (
-                        <p className="text-xs text-[var(--color-text-muted)]">
-                          {card.company}
-                        </p>
-                      )}
+                <Plus className={shellStyles.buttonIcon} />
+                Create Card
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className={`${shellStyles.surfaceCard} glass-panel`}>
+          <div className={shellStyles.surfaceHeader}>
+            <div>
+              <p className={`mono ${shellStyles.spotlightLabel}`}>CARD INVENTORY</p>
+              <h2 className={shellStyles.surfaceTitle}>Published and in-progress cards</h2>
+              <p className={shellStyles.surfaceDescription}>
+                Each card keeps its own public route, theme configuration,
+                approval state, and editing controls.
+              </p>
+            </div>
+
+            <div className={shellStyles.pillRow}>
+              <span className={shellStyles.pill}>
+                <Eye className={shellStyles.pillIcon} />
+                {totalViews} total views
+              </span>
+              <span className={shellStyles.pill}>
+                <ShieldCheck className={shellStyles.pillIcon} />
+                {isManualMode ? "Manual approvals" : "Billing tracked"}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+            {cards.map((card) => {
+              const resolvedStatus = isManualMode
+                ? getResolvedManualStatus(card)
+                : null;
+
+              return (
+                <article
+                  key={card.id}
+                  className={`${shellStyles.surfaceCard} glass-panel`}
+                >
+                  <div
+                    className="h-1.5 rounded-full mb-5"
+                    style={{ backgroundColor: card.accentColor }}
+                  />
+
+                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-3 mb-3">
+                        <h3 className="text-2xl font-semibold tracking-tight">
+                          {card.fullName}
+                        </h3>
+                        {getStatusBadge(card)}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-[var(--color-text-muted)]">
+                        <span>{card.jobTitle || "No job title yet"}</span>
+                        <span>{card.company || "No company yet"}</span>
+                        <span className="font-[family-name:var(--font-mono)] text-xs uppercase tracking-[0.22em]">
+                          Theme: {card.theme}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <span className={shellStyles.badge}>
+                          <Eye className={shellStyles.badgeIcon} />
+                          {card._count.views} views
+                        </span>
+                        <span className={shellStyles.badge}>
+                          <QrCode className={shellStyles.badgeIcon} />
+                          /{card.slug}
+                        </span>
+                      </div>
                     </div>
-                    {getStatusBadge(card)}
-                  </div>
 
-                  <div className="flex items-center gap-4 mb-4 text-sm text-[var(--color-text-muted)]">
-                    <span className="flex items-center gap-1">
-                      <Eye className="w-3.5 h-3.5" />
-                      {card._count.views} views
-                    </span>
-                    <span className="font-[family-name:var(--font-geist-mono)] text-xs">
-                      /{card.slug}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/card/${card.slug}`}
-                      target="_blank"
-                      className="flex items-center gap-1 text-xs bg-[var(--color-bg-base)] border border-[var(--color-border)] px-3 py-2 rounded-md hover:border-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      Open
-                    </Link>
-                    <Link
-                      href={`/dashboard/cards/${card.id}/edit`}
-                      className="flex items-center gap-1 text-xs bg-[var(--color-bg-base)] border border-[var(--color-border)] px-3 py-2 rounded-md hover:border-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-                    >
-                      <Pencil className="w-3 h-3" />
-                      Edit
-                    </Link>
-                    <Link
-                      href={`/card/${card.slug}`}
-                      target="_blank"
-                      className="flex items-center gap-1 text-xs bg-[var(--color-bg-base)] border border-[var(--color-border)] px-3 py-2 rounded-md hover:border-[var(--color-neon)] transition-colors font-[family-name:var(--font-geist-mono)]"
-                    >
-                      <QrCode className="w-3 h-3" />
-                    </Link>
-                    {(!isManualMode &&
-                      (!card.subscription ||
-                        card.subscription.status !== "active")) && (
+                    <div className={`${shellStyles.buttonRow} lg:justify-end`}>
                       <Link
-                        href="/dashboard/billing"
-                        className="flex items-center gap-1 text-xs bg-[var(--color-neon)]/10 border border-[var(--color-neon)]/30 text-[var(--color-neon)] px-3 py-2 rounded-md hover:bg-[var(--color-neon)] hover:text-black transition-all font-[family-name:var(--font-geist-mono)]"
+                        href={`/card/${card.slug}`}
+                        target="_blank"
+                        className={shellStyles.actionButtonGhost}
                       >
-                        Billing coming soon
+                        <ExternalLink className={shellStyles.buttonIcon} />
+                        Open
                       </Link>
-                    )}
-                    {isManualMode &&
-                      (card.manualStatus ?? getManualCardStatus(card)) !== "active" && (
                       <Link
-                        href="/dashboard/billing"
-                        className="flex items-center gap-1 text-xs bg-[var(--color-neon)]/10 border border-[var(--color-neon)]/30 text-[var(--color-neon)] px-3 py-2 rounded-md hover:bg-[var(--color-neon)] hover:text-black transition-all font-[family-name:var(--font-geist-mono)]"
+                        href={`/dashboard/cards/${card.id}/edit`}
+                        className={shellStyles.actionButtonGhost}
                       >
-                        {(card.manualStatus ?? getManualCardStatus(card)) === "paused"
-                          ? "Reactivation"
-                          : "Activation"}
+                        <Pencil className={shellStyles.buttonIcon} />
+                        Edit
                       </Link>
-                    )}
-                    <button
-                      onClick={() => deleteCard(card.id)}
-                      disabled={deleting === card.id}
-                      className="flex items-center gap-1 text-xs bg-[var(--color-bg-base)] border border-[var(--color-border)] px-3 py-2 rounded-md hover:border-[var(--color-neon-danger)] hover:text-[var(--color-neon-danger)] transition-colors ml-auto"
-                    >
-                      {deleting === card.id ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-3 h-3" />
+                      {(!isManualMode &&
+                        (!card.subscription ||
+                          card.subscription.status !== "active")) && (
+                        <Link
+                          href="/dashboard/billing"
+                          className={shellStyles.actionButton}
+                        >
+                          Billing
+                        </Link>
                       )}
-                    </button>
+                      {isManualMode && session?.user?.isAdmin ? (
+                        resolvedStatus === "active" ? (
+                          <button
+                            onClick={() => void quickUpdateStatus(card.id, "paused")}
+                            disabled={quickUpdating === card.id}
+                            className={shellStyles.actionButtonGhost}
+                          >
+                            {quickUpdating === card.id ? (
+                              <Loader2 className={shellStyles.buttonIcon} />
+                            ) : (
+                              <PauseCircle className={shellStyles.buttonIcon} />
+                            )}
+                            Pause
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => void quickUpdateStatus(card.id, "active")}
+                            disabled={quickUpdating === card.id}
+                            className={shellStyles.actionButton}
+                          >
+                            {quickUpdating === card.id ? (
+                              <Loader2 className={shellStyles.buttonIcon} />
+                            ) : (
+                              <CheckCircle className={shellStyles.buttonIcon} />
+                            )}
+                            {resolvedStatus === "paused"
+                              ? "Reactivate"
+                              : "Activate"}
+                          </button>
+                        )
+                      ) : null}
+                      {isManualMode &&
+                      !session?.user?.isAdmin &&
+                      resolvedStatus !== "active" ? (
+                        <button
+                          type="button"
+                          disabled
+                          className={`${shellStyles.actionButtonGhost} cursor-default opacity-75`}
+                        >
+                          {resolvedStatus === "paused"
+                            ? "View status"
+                            : "Pending review"}
+                        </button>
+                      ) : null}
+                      {isManualMode && session?.user?.isAdmin && (
+                        <Link
+                          href="/dashboard/admin"
+                          className={shellStyles.actionButtonGhost}
+                        >
+                          <ShieldCheck className={shellStyles.buttonIcon} />
+                          Queue
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => void deleteCard(card.id)}
+                        disabled={deleting === card.id}
+                        className={shellStyles.actionButtonDanger}
+                      >
+                        {deleting === card.id ? (
+                          <Loader2 className={shellStyles.buttonIcon} />
+                        ) : (
+                          <Trash2 className={shellStyles.buttonIcon} />
+                        )}
+                        Delete
+                      </button>
+                    </div>
                   </div>
 
                   {isManualMode && (
-                    <p className="mt-3 text-xs text-[var(--color-text-muted)] font-[family-name:var(--font-geist-mono)]">
-                      {(card.manualStatus ?? getManualCardStatus(card)) === "active"
-                        ? "This card is live and accessible."
-                        : (card.manualStatus ?? getManualCardStatus(card)) ===
-                            "paused"
-                          ? "This card is hidden until manual reactivation."
-                          : "This card is waiting for manual approval."}
+                    <p className="mt-5 text-sm text-[var(--color-text-muted)] leading-7">
+                      {resolvedStatus === "active"
+                        ? "This card is live and publicly accessible."
+                        : resolvedStatus === "paused"
+                          ? "This card is currently hidden until you manually reactivate it."
+                          : "This card is waiting for manual approval before it goes live."}
                     </p>
                   )}
-                </div>
-              </div>
-            ))}
+                </article>
+              );
+            })}
           </div>
-        )}
-      </main>
-    </div>
+        </section>
+      )}
+    </DashboardShell>
   );
 }

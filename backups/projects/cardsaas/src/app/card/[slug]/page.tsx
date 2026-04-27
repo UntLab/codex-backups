@@ -8,6 +8,8 @@ import type { Metadata } from "next";
 import CyberpunkCard from "@/components/CyberpunkCard";
 import MinimalCard from "@/components/MinimalCard";
 import GradientCard from "@/components/GradientCard";
+import FormagCorporateCard from "@/components/FormagCorporateCard";
+import PRGTechCard from "@/components/PRGTechCard";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -53,6 +55,18 @@ const themeComponents: Record<
   cyberpunk: CyberpunkCard as unknown as React.ComponentType<{ card: Record<string, unknown> }>,
   minimal: MinimalCard as unknown as React.ComponentType<{ card: Record<string, unknown> }>,
   gradient: GradientCard as unknown as React.ComponentType<{ card: Record<string, unknown> }>,
+  formag_corporate:
+    FormagCorporateCard as unknown as React.ComponentType<{
+      card: Record<string, unknown>;
+    }>,
+  prg_tech:
+    PRGTechCard as unknown as React.ComponentType<{
+      card: Record<string, unknown>;
+    }>,
+  prg_tech_orange:
+    PRGTechCard as unknown as React.ComponentType<{
+      card: Record<string, unknown>;
+    }>,
 };
 
 export default async function CardPage({ params }: Props) {

@@ -97,6 +97,13 @@ npx prisma migrate deploy
 npm run dev
 ```
 
+## Guides
+
+- User manual (EN): [`USER_MANUAL.md`](./USER_MANUAL.md)
+- User manual (RU): [`USER_MANUAL.ru.md`](./USER_MANUAL.ru.md)
+- Admin manual (EN): [`ADMIN_MANUAL.md`](./ADMIN_MANUAL.md)
+- Admin manual (RU): [`ADMIN_MANUAL.ru.md`](./ADMIN_MANUAL.ru.md)
+
 ## Environment Variables
 
 | Variable | Description |

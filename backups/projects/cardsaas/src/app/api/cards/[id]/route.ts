@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { applyFormagThemeDefaults } from "@/lib/formag";
+import { applyPrgThemeDefaults } from "@/lib/prg";
 import { prisma } from "@/lib/prisma";
+import { buildCardSlugBase } from "@/lib/slug";
 
 export async function GET(
   _req: NextRequest,
@@ -46,11 +49,24 @@ export async function PUT(
   }
 
   try {
-    const data = await req.json();
+    const data = applyPrgThemeDefaults(
+      applyFormagThemeDefaults(await req.json())
+    );
 
-    if (data.slug && data.slug !== existing.slug) {
+    const nextSlug = data.slug
+      ? buildCardSlugBase({
+          slug: data.slug,
+          fallback: existing.slug || `card-${id.slice(0, 8)}`,
+        })
+      : existing.slug ||
+        buildCardSlugBase({
+          fullName: data.fullName,
+          fallback: `card-${id.slice(0, 8)}`,
+        });
+
+    if (nextSlug !== existing.slug) {
       const slugTaken = await prisma.card.findFirst({
-        where: { slug: data.slug, id: { not: id } },
+        where: { slug: nextSlug, id: { not: id } },
       });
       if (slugTaken) {
         return NextResponse.json(
@@ -64,13 +80,15 @@ export async function PUT(
       where: { id },
       data: {
         fullName: data.fullName,
-        slug: data.slug || existing.slug,
+        slug: nextSlug,
         jobTitle: data.jobTitle,
         company: data.company,
         bio: data.bio,
         phone: data.phone,
+        secondaryPhone: data.secondaryPhone,
         email: data.email,
         website: data.website,
+        officeAddress: data.officeAddress,
         avatarUrl: data.avatarUrl,
         github: data.github,
         telegram: data.telegram,
